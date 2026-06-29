@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Document {
+  id            String   @id @default(cuid())
+  fileName      String
+  filePath      String
+
+  extractedText String?
+
+  summary       String?
+  fileSize      Int?
+  pageCount     Int?
+
+  status        String   @default("UPLOADED")
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
