@@ -1,29 +1,39 @@
 import { NextResponse } from "next/server";
-import { AIService } from "@/lib/ai/ai.service";
-import { DocumentService } from "@/lib/services/document.service";
+import { RagService } from "@/lib/ai/rag.service";
 
-export  async function POST(req: Request) {
+export async function POST(req: Request) {
   try {
     const body = await req.json();
 
     const { documentId, question } = body;
 
-    const documentText =
-      await DocumentService.getDocumentText(documentId);
-
-    const result =
-      await AIService.askQuestion(
-        documentText,
-        question
+    if (!documentId || !question) {
+      return NextResponse.json(
+        {
+          error: "documentId and question are required.",
+        },
+        {
+          status: 400,
+        }
       );
+    }
+
+    const result = await RagService.askDocument(
+      documentId,
+      question
+    );
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error(error);
+    console.error("RAG Chat Error:", error);
 
     return NextResponse.json(
-      { error: "Chat failed" },
-      { status: 500 }
+      {
+        error: "Chat failed",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }

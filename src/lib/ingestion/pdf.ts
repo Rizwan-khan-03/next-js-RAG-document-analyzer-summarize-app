@@ -1,35 +1,23 @@
 import fs from "fs";
-import pdfParse from "pdf-parse";
+import { extractText } from "unpdf";
 
 export async function extractPdfText(filePath: string) {
-  const buffer = fs.readFileSync(filePath);
+  try {
+    const buffer = fs.readFileSync(filePath);
 
-  const pdf = await pdfParse(buffer);
+    // Convert Buffer -> Uint8Array
+    const data = new Uint8Array(buffer);
 
-  return pdf.text;
+    const result = await extractText(data);
+
+    // console.log("PDF extracted successfully");
+    // console.log("UNPDF RESULT:");
+    // console.dir(result, { depth: null });
+
+       return result.text.join("\n");
+       
+  } catch (error) {
+    console.error("PDF ERROR:", error);
+    throw error;
+  }
 }
-// import fs from "fs";
-// import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
-
-// export async function extractPdfText(filePath: string) {
-//   const data = new Uint8Array(fs.readFileSync(filePath));
-
-//   const pdf = await pdfjsLib.getDocument({
-//     data,
-   
-//   }).promise;
-
-//   let text = "";
-
-//   for (let i = 1; i <= pdf.numPages; i++) {
-//     const page = await pdf.getPage(i);
-//     const content = await page.getTextContent();
-
-//     text +=
-//       content.items
-//         .map((item: any) => item.str)
-//         .join(" ") + "\n";
-//   }
-
-//   return text;
-// }

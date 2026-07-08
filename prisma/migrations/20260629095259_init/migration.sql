@@ -4,6 +4,9 @@ CREATE TABLE "Document" (
     "fileName" TEXT NOT NULL,
     "filePath" TEXT NOT NULL,
     "extractedText" TEXT,
+    "summary" TEXT,
+    "keywords" TEXT,
     "status" TEXT NOT NULL DEFAULT 'UPLOADED',
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
 );

@@ -72,4 +72,22 @@ export class DocumentService {
     },
   });
 }
+static async saveChunks(
+  documentId: string,
+  chunks: string[]
+) {
+  await prisma.documentChunk.deleteMany({
+    where: {
+      documentId,
+    },
+  });
+
+  await prisma.documentChunk.createMany({
+    data: chunks.map((content, index) => ({
+      documentId,
+      chunkIndex: index,
+      content,
+    })),
+  });
+}
 }
