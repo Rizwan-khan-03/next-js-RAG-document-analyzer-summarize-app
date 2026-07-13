@@ -7,8 +7,7 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  const document =
-    await DocumentService.getDocument(id);
+  const document = await DocumentService.getDocument(id);
 
   return NextResponse.json(document);
 }

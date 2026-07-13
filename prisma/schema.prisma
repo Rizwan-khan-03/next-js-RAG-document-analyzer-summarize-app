@@ -25,15 +25,17 @@ model Document {
 }
 
 model DocumentChunk {
-  id         String   @id @default(cuid())
+  id          String   @id @default(cuid())
 
-  documentId String
-  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  documentId  String
+  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
 
-  chunkIndex Int
-  content    String
+  pageNumber  Int
+  chunkIndex  Int
 
-  embedding  Unsupported("vector")
+  content     String
 
-  createdAt  DateTime @default(now())
+  embedding   Unsupported("vector(3072)")?
+
+  createdAt   DateTime @default(now())
 }

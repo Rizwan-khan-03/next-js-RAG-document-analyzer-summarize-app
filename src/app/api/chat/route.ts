@@ -9,31 +9,23 @@ export async function POST(req: Request) {
 
     if (!documentId || !question) {
       return NextResponse.json(
-        {
-          error: "documentId and question are required.",
-        },
-        {
-          status: 400,
-        }
+        { error: "documentId and question are required." },
+        { status: 400 }
       );
     }
 
-    const result = await RagService.askDocument(
+    const result = await RagService.askQuestion(
       documentId,
       question
     );
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error("RAG Chat Error:", error);
+    console.error("Chat Error:", error);
 
     return NextResponse.json(
-      {
-        error: "Chat failed",
-      },
-      {
-        status: 500,
-      }
+      { error: "Chat failed." },
+      { status: 500 }
     );
   }
 }

@@ -11,15 +11,20 @@ export async function processDocument(
   filePath: string
 ) {
   // STEP 1
-  const extractedText = await extractPdfText(filePath);
+  const pages = await extractPdfText(filePath);
+
+  // Merge all pages for summary/keywords
+  const fullText = pages
+    .map((page) => page.text)
+    .join("\n\n");
 
   // STEP 2
   const summary =
-    await AIService.generateSummary(extractedText);
+    await AIService.generateSummary(fullText);
 
   // STEP 3
   const keywords =
-    await AIService.extractKeywords(extractedText);
+    await AIService.extractKeywords(fullText);
 
   // STEP 4
   await prisma.document.update({
@@ -27,34 +32,60 @@ export async function processDocument(
       id,
     },
     data: {
-      extractedText,
+      extractedText: fullText,
       summary,
       keywords: keywords.join(", "),
       status: "PROCESSING",
     },
   });
 
+  let globalChunkIndex = 0;
+
   // STEP 5
-  const chunks =
-    ChunkService.splitIntoChunks(extractedText);
+  for (const page of pages) {
 
-  console.log("Chunks:", chunks.length);
+    const chunks =
+      ChunkService.splitIntoChunks(page.text);
 
-  // STEP 6
-  for (let i = 0; i < chunks.length; i++) {
-    console.log(`Embedding chunk ${i + 1}/${chunks.length}`);
+    console.log(
+      `Page ${page.pageNumber}: ${chunks.length} chunks`
+    );
 
-    const embedding =
-      await EmbeddingService.generateEmbedding(
-        chunks[i]
+    // STEP 6
+    for (const chunk of chunks) {
+
+      console.log(
+        `Embedding chunk ${globalChunkIndex + 1}`
       );
 
-    await VectorService.insertChunk(
-      id,
-      i,
-      chunks[i],
-      embedding
-    );
+      const embedding =
+        await EmbeddingService.generateEmbedding(
+          chunk
+        );
+
+      try {
+        await VectorService.insertChunk(
+          id,
+          globalChunkIndex,
+          page.pageNumber,
+          chunk,
+          embedding
+        );
+
+        console.log(
+          `✅ Successfully inserted chunk ${globalChunkIndex}`
+        );
+      } catch (err) {
+        console.error(
+          `❌ Failed inserting chunk ${globalChunkIndex}`
+        );
+        console.error(err);
+
+        throw err;
+      }
+
+      globalChunkIndex++;
+    }
   }
 
   // STEP 7

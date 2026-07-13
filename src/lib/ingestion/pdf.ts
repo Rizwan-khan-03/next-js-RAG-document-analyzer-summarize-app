@@ -1,23 +1,22 @@
 import fs from "fs";
 import { extractText } from "unpdf";
 
-export async function extractPdfText(filePath: string) {
-  try {
-    const buffer = fs.readFileSync(filePath);
+export interface PdfPage {
+  pageNumber: number;
+  text: string;
+}
 
-    // Convert Buffer -> Uint8Array
-    const data = new Uint8Array(buffer);
+export async function extractPdfText(
+  filePath: string
+): Promise<PdfPage[]> {
+  const buffer = fs.readFileSync(filePath);
 
-    const result = await extractText(data);
+  const data = new Uint8Array(buffer);
 
-    // console.log("PDF extracted successfully");
-    // console.log("UNPDF RESULT:");
-    // console.dir(result, { depth: null });
+  const result = await extractText(data);
 
-       return result.text.join("\n");
-       
-  } catch (error) {
-    console.error("PDF ERROR:", error);
-    throw error;
-  }
+  return result.text.map((pageText, index) => ({
+    pageNumber: index + 1,
+    text: pageText,
+  }));
 }

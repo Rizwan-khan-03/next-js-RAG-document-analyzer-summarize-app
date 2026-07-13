@@ -14,7 +14,7 @@ export default function DocumentList() {
 
     useEffect(() => {
         fetch("/api/documents")
-            .then((res) => res?.json())
+            .then((res) => res?.json()) 
             .then((data) => setDocuments(data))
             .catch(console.error);
     }, []);
