@@ -1,31 +1,64 @@
-import { NextResponse } from "next/server";
 import { RagService } from "@/lib/ai/rag.service";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-
-    const { documentId, question } = body;
+    const { documentId, question } = await req.json();
 
     if (!documentId || !question) {
-      return NextResponse.json(
-        { error: "documentId and question are required." },
-        { status: 400 }
-      );
+      return new Response("Missing documentId or question", {
+        status: 400,
+      });
     }
 
-    const result = await RagService.askQuestion(
-      documentId,
-      question
-    );
+    const { stream, sources } =
+      await RagService.askQuestion(
+        documentId,
+        question
+      );
 
-    return NextResponse.json(result);
+    const encoder = new TextEncoder();
+
+    const readableStream = new ReadableStream({
+      async start(controller) {
+        try {
+          // First send the sources
+          controller.enqueue(
+            encoder.encode(
+              `__SOURCES__${JSON.stringify(sources)}\n`
+            )
+          );
+
+          // Then stream the AI response
+          for await (const chunk of stream as any) {
+            const text =
+              chunk.choices?.[0]?.delta?.content ?? "";
+
+            if (text) {
+              controller.enqueue(
+                encoder.encode(text)
+              );
+            }
+          }
+
+          controller.close();
+        } catch (err) {
+          controller.error(err);
+        }
+      },
+    });
+
+    return new Response(readableStream, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
+    });
   } catch (error) {
-    console.error("Chat Error:", error);
+    console.error(error);
 
-    return NextResponse.json(
-      { error: "Chat failed." },
-      { status: 500 }
-    );
+    return new Response("Internal Server Error", {
+      status: 500,
+    });
   }
 }

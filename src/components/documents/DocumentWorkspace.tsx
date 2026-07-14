@@ -1,46 +1,66 @@
 "use client";
 
 import { useState } from "react";
-import PdfViewer from "@/components/pdf/PdfViewer";
-import ChatPanel from "@/components/chat/ChatPanel";
+
+import PdfViewer from "../pdf/PdfViewer";
+import ChatPanel from "../chat/ChatPanel";
+import DocumentSidebar from "./DocumentSidebar";
 
 interface Props {
-    documentId: string;
-    fileUrl: string;
+  document: any;
 }
 
 export default function DocumentWorkspace({
-    documentId,
-    fileUrl,
+  document,
 }: Props) {
-    const [currentPage, setCurrentPage] = useState(1);
-    const [highlightText, setHighlightText] = useState("");
 
-    return (
-        <div className="grid grid-cols-2 gap-6 h-[900px]">
-            {/* PDF */}
-            <div className="bg-white rounded-lg shadow border p-4 overflow-hidden">
-                <PdfViewer
-                    fileUrl={fileUrl}
-                    pageNumber={currentPage}
-                    highlightText={highlightText}
-                />
-            </div>
+  const [currentPage, setCurrentPage] =
+    useState(1);
 
-            {/* Chat */}
-            <div className="bg-white rounded-lg shadow border p-6">
-                <h2 className="text-xl font-semibold mb-4">
-                    🤖 Ask AI
-                </h2>
+  const [highlightText, setHighlightText] =
+    useState("");
 
-                <ChatPanel
-                    documentId={documentId}
-                    onSourceSelect={(source) => {
-                        setCurrentPage(source.pageNumber);
-                        setHighlightText(source.content);
-                    }}
-                />
-            </div>
-        </div>
-    );
+  return (
+
+    <div className="grid grid-cols-[320px_420px_1fr] gap-6 h-[calc(100vh-110px)]">
+
+      {/* Sidebar */}
+
+      <DocumentSidebar
+        document={document}
+      />
+
+      {/* Chat */}
+
+      <div className="bg-white rounded-xl border shadow-sm p-5 flex flex-col h-full overflow-hidden">
+
+        <h2 className="font-semibold text-xl ">
+          🤖 AI Assistant
+        </h2>
+
+        <ChatPanel
+          documentId={document.id}
+          onSourceSelect={(source) => {
+            setCurrentPage(source.pageNumber);
+            setHighlightText(source.content);
+          }}
+        />
+
+      </div>
+
+      {/* PDF */}
+
+      <div className="bg-white rounded-xl border shadow-sm p-5 overflow-hidden">
+
+        <PdfViewer
+          fileUrl={document.filePath}
+          pageNumber={currentPage}
+          highlightText={highlightText}
+        />
+
+      </div>
+
+    </div>
+
+  );
 }

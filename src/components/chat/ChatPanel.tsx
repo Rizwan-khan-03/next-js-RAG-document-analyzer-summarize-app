@@ -23,7 +23,7 @@ export default function ChatPanel({
   documentId,
   onSourceSelect,
 }: ChatPanelProps) {
-   console.log("ChatPanel props", {
+  console.log("ChatPanel props", {
     documentId,
     onSourceSelect,
     type: typeof onSourceSelect,
@@ -59,16 +59,62 @@ export default function ChatPanel({
       }),
     });
 
-    const data = await response.json();
+    if (!response.body) return;
 
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    let answer = "";
+    let sources: Source[] = [];
+    let firstChunk = true;
+
+    // Empty assistant message
     setMessages((prev) => [
       ...prev,
       {
         role: "assistant",
-        text: data.answer,
-        sources: data.sources ?? [],
+        text: "",
+        sources: [],
       },
     ]);
+
+    while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) break;
+
+      let chunk = decoder.decode(value);
+
+      // First chunk contains sources
+      if (firstChunk && chunk.startsWith("__SOURCES__")) {
+        firstChunk = false;
+
+        const newline = chunk.indexOf("\n");
+
+        const sourceJson = chunk.substring(
+          "__SOURCES__".length,
+          newline
+        );
+
+        sources = JSON.parse(sourceJson);
+
+        chunk = chunk.substring(newline + 1);
+      }
+
+      answer += chunk;
+
+      setMessages((prev) => {
+        const copy = [...prev];
+
+        copy[copy.length - 1] = {
+          role: "assistant",
+          text: answer,
+          sources,
+        };
+
+        return copy;
+      });
+    }
 
     setLoading(false);
   }
@@ -92,7 +138,7 @@ export default function ChatPanel({
                   {message.text}
                 </p>
 
-                {message.sources &&
+                {message.sources && message.text && message.text.trim() !== "" && message.sources.length > 0 &&
                   message.sources.length > 0 && (
                     <div className="mt-4 flex flex-wrap gap-2">
 
@@ -134,22 +180,22 @@ export default function ChatPanel({
 
       </div>
 
-      <textarea
-        className="border rounded-lg p-3"
-        rows={3}
-        value={question}
-        placeholder="Ask anything..."
-        onChange={(e) =>
-          setQuestion(e.target.value)
-        }
-      />
+      <div className="border-t pt-4">
+        <textarea
+          className="w-full border rounded-lg p-3 resize-none"
+          rows={3}
+          value={question}
+          placeholder="Ask anything..."
+          onChange={(e) => setQuestion(e.target.value)}
+        />
 
-      <button
-        onClick={askAI}
-        className="mt-3 bg-black text-white rounded-lg py-3"
-      >
-        Send
-      </button>
+        <button
+          onClick={askAI}
+          className="w-full mt-3 bg-black text-white rounded-lg py-3"
+        >
+          Send
+        </button>
+      </div>
 
     </div>
   );

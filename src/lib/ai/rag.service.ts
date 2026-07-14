@@ -48,32 +48,27 @@ QUESTION
 
 ${question}
 `;
-
-    const completion =
-      await openrouter.chat.completions.create({
-       model: "openai/gpt-oss-20b:free",
-
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are an expert AI document assistant. Answer ONLY using the supplied context. If the answer is not present, reply: I couldn't find that information in the document.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-
-        temperature: 0.2,
-      });
-
-    const answer =
-      completion.choices[0]?.message?.content ??
-      "No answer generated.";
+console.log("Creating OpenRouter stream...");
+    const stream = await openrouter.chat.completions.create({
+      model: "openai/gpt-oss-20b:free",
+      stream: true,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are an expert AI document assistant. Answer ONLY using the supplied context. If the answer is not present, reply: I couldn't find that information in the document.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      temperature: 0.2,
+    });
+    console.log("Stream created successfully");
 
     return {
-      answer,
+      stream,
       sources: chunks.map((chunk: any) => ({
         pageNumber: chunk.pageNumber,
         similarity: Number(chunk.similarity.toFixed(2)),
