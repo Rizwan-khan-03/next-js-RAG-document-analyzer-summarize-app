@@ -4,10 +4,11 @@ import { useState } from "react";
 
 export default function FileUpload() {
   const [file, setFile] = useState<File | null>(null);
-
+const [uploading, setUploading] = useState(false);
   const handleUpload = async () => {
     if (!file) return;
 
+    setUploading(true);
     const formData = new FormData();
     formData.append("file", file);
 
@@ -20,8 +21,8 @@ export default function FileUpload() {
     );
 
     const result = await response.json();
-
-    console.log(result);
+    
+    setUploading(false);
     alert("File uploaded");
       window.location.reload();
   };
@@ -39,8 +40,9 @@ export default function FileUpload() {
       <button
         onClick={handleUpload}
         className="px-4 py-2 bg-black text-white rounded"
+        disabled={!file || uploading}
       >
-        Upload
+        {uploading ? "Uploading..." : "Upload"}
       </button>
     </div>
   );

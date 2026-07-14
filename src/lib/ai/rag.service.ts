@@ -1,5 +1,6 @@
 import { SearchService } from "@/lib/vector/search.service";
-import { gemini } from "@/lib/ai/gemini";
+// import { gemini } from "@/lib/ai/gemini";
+import { openrouter } from "@/lib/ai/openrouter";
 
 export class RagService {
   static async askQuestion(
@@ -22,7 +23,7 @@ export class RagService {
 
     // Step 2: Build context
     const context = chunks
-      .map((chunk) => chunk.content)
+      .map((chunk: any) => chunk.content)
       .join("\n\n-----------------------\n\n");
 
     // Step 3: Ask Gemini
@@ -48,18 +49,35 @@ QUESTION
 ${question}
 `;
 
-    const response =
-      await gemini.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
+    const completion =
+      await openrouter.chat.completions.create({
+       model: "openai/gpt-oss-20b:free",
+
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are an expert AI document assistant. Answer ONLY using the supplied context. If the answer is not present, reply: I couldn't find that information in the document.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+
+        temperature: 0.2,
       });
 
-    // Step 4: Return answer + sources
+    const answer =
+      completion.choices[0]?.message?.content ??
+      "No answer generated.";
+
     return {
-      answer: response.text ?? "No answer generated.",
-      sources: chunks.map((chunk) => ({
+      answer,
+      sources: chunks.map((chunk: any) => ({
         pageNumber: chunk.pageNumber,
         similarity: Number(chunk.similarity.toFixed(2)),
+        content: chunk.content,
       })),
     };
   }

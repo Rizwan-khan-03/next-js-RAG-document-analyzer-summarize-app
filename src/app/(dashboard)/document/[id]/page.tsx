@@ -1,6 +1,4 @@
 import DocumentWorkspace from "@/components/documents/DocumentWorkspace";
-// import ChatPanel from "@/components/chat/ChatPanel";
-// import PdfViewer from "@/components/pdf/PdfViewer";
 async function getDocument(id: string) {
   const res = await fetch(
     `http://localhost:3000/api/documents/${id}`,
@@ -106,26 +104,6 @@ export default async function DocumentPage({
         documentId={document.id}
         fileUrl={document.filePath}
       />
-      {/* <div className="grid grid-cols-2 gap-6 h-[900px]">
-
-       
-        <div className="bg-white rounded-lg shadow border p-4 overflow-hidden">
-          <PdfViewer
-            fileUrl={document.filePath}
-            pageNumber={1}
-          />
-        </div>
-
-      
-        <div className="bg-white rounded-lg shadow border p-6">
-          <h2 className="text-xl font-semibold mb-4">
-            🤖 Ask AI
-          </h2>
-
-          <ChatPanel documentId={document.id} />
-        </div>
-
-      </div> */}
 
     </div>
   );

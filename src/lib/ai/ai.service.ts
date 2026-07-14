@@ -1,46 +1,6 @@
-import { gemini } from "./gemini";
+import { openrouter } from "./openrouter";
+
 export class AIService {
-    // static async askQuestion(
-    //     documentText: string,
-    //     question: string
-    // ) {
-    //     // Temporary fake AI implementation
-
-    //     if (!documentText) {
-    //         return {
-    //             answer: "This document has no extracted text.",
-    //         };
-    //     }
-
-    //     const lowerQuestion = question.toLowerCase();
-    //     const lowerText = documentText.toLowerCase();
-
-    //     if (lowerQuestion.includes("skills")) {
-    //         return {
-    //             answer:
-    //                 "I found possible technical skills in this document: React, TypeScript, JavaScript, Node.js.",
-    //         };
-    //     }
-
-    //     if (lowerQuestion.includes("summary")) {
-    //         return {
-    //             answer:
-    //                 documentText.substring(0, 300) + "...",
-    //         };
-    //     }
-
-    //     if (lowerQuestion.includes("name")) {
-    //         return {
-    //             answer:
-    //                 "The person's name appears near the beginning of the document.",
-    //         };
-    //     }
-
-    //     return {
-    //         answer:
-    //             "AI provider is not connected yet. This is a mock response.",
-    //     };
-    // }
     static async askQuestion(
         documentText: string,
         question: string
@@ -56,85 +16,107 @@ You are an AI Document Assistant.
 
 Answer ONLY using the document below.
 
-If the answer cannot be found in the document, say:
+If the answer cannot be found, reply:
+
 "I couldn't find that information in the document."
 
------------------------
-DOCUMENT
------------------------
+DOCUMENT:
 
 ${documentText}
 
------------------------
-QUESTION
------------------------
+QUESTION:
 
 ${question}
 `;
 
-        const response =
-            await gemini.models.generateContent({
-                model: "gemini-2.5-flash",
-                contents: prompt,
+        const completion =
+            await openrouter.chat.completions.create({
+                model: "openai/gpt-oss-20b:free",
+
+                messages: [
+                    {
+                        role: "system",
+                        content:
+                            "Answer only using the supplied document.",
+                    },
+                    {
+                        role: "user",
+                        content: prompt,
+                    },
+                ],
+
+                temperature: 0.2,
             });
 
         return {
-            answer: response.text ?? "No response generated.",
+            answer:
+                completion.choices[0].message.content ??
+                "No response generated.",
         };
     }
+
     static async generateSummary(text: string) {
         if (!text) return "";
 
-        const prompt = `
-You are an AI assistant.
+        const completion =
+            await openrouter.chat.completions.create({
+                model: "openai/gpt-oss-20b:free",
 
-Summarize the following document in 5-8 concise sentences.
-
-Focus on:
-- Main topic
-- Important information
-- Key points
-
-Document:
+                messages: [
+                    {
+                        role: "system",
+                        content:
+                            "You summarize documents professionally.",
+                    },
+                    {
+                        role: "user",
+                        content: `
+Summarize this document in 5-8 concise sentences.
 
 ${text}
-`;
+`,
+                    },
+                ],
 
-        const response =
-            await gemini.models.generateContent({
-                model: "gemini-2.5-flash",
-                contents: prompt,
+                temperature: 0.3,
             });
 
-        return response.text ?? "";
+        return completion.choices[0].message.content ?? "";
     }
 
     static async extractKeywords(text: string) {
         if (!text) return [];
 
-        const prompt = `
-Extract the 10 most important keywords from this document.
+        const completion =
+            await openrouter.chat.completions.create({
+                model: "openai/gpt-oss-20b:free",
 
-Rules:
-- Return only keywords.
-- Separate them with commas.
-- Do not number them.
-- Do not explain them.
+                messages: [
+                    {
+                        role: "system",
+                        content:
+                            "Extract only keywords separated by commas.",
+                    },
+                    {
+                        role: "user",
+                        content: `
+Extract the 10 most important keywords.
 
-Document:
+Return ONLY comma-separated keywords.
 
 ${text}
-`;
+`,
+                    },
+                ],
 
-        const response =
-            await gemini.models.generateContent({
-                model: "gemini-2.5-flash",
-                contents: prompt,
+                temperature: 0,
             });
 
-        return response.text
-            ?.split(",")
-            .map(k => k.trim())
-            .filter(Boolean) ?? [];
+        return (
+            completion.choices[0].message.content
+                ?.split(",")
+                .map((k) => k.trim())
+                .filter(Boolean) ?? []
+        );
     }
-}   
+}
