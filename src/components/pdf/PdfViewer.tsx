@@ -5,7 +5,7 @@ import { Document, Page, pdfjs } from "react-pdf";
 
 import "react-pdf/dist/Page/TextLayer.css";
 import "react-pdf/dist/Page/AnnotationLayer.css";
-
+import CustomTextLayer from "./CustomTextLayer";
 // PDF Worker
 pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
@@ -52,7 +52,7 @@ export default function PdfViewer({
 
                 if (matched) {
                     span.style.background = "#fde047";
-                        span.style.color = "black";
+                    span.style.color = "black";
                     span.style.borderRadius = "2px";
                 }
             });
@@ -75,13 +75,13 @@ export default function PdfViewer({
                     renderTextLayer={true}
                     renderAnnotationLayer={true}
                 />
-               
+
             </Document>
 
             <div className="mt-1 text-center text-sm text-gray-500">
                 Page {pageNumber} of {numPages}
             </div>
-            {highlightText && (
+            {/* {highlightText && (
                 <div className="mt-4 rounded-lg border bg-yellow-50 p-3">
                     <h4 className="font-semibold mb-2">
                         🎯 Matched Chunk
@@ -90,6 +90,20 @@ export default function PdfViewer({
                     <p className="text-sm whitespace-pre-wrap">
                         {highlightText}
                     </p>
+                </div>
+            )} */}
+            {highlightText && (
+                <div className="mt-4 rounded-lg border bg-yellow-50 p-3">
+                    <h4 className="font-semibold mb-2">
+                        🎯 Matched Chunk
+                    </h4>
+
+                    <div className="text-sm whitespace-pre-wrap leading-6">
+                        <CustomTextLayer
+                            text={highlightText}
+                            highlight={highlightText}
+                        />
+                    </div>
                 </div>
             )}
         </div>
