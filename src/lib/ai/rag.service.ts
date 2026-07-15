@@ -5,7 +5,8 @@ import { openrouter } from "@/lib/ai/openrouter";
 export class RagService {
   static async askQuestion(
     documentId: string,
-    question: string
+    question: string,
+    history: any[] = []
   ) {
     // Step 1: Retrieve most relevant chunks
     const chunks = await SearchService.searchSimilarChunks(
@@ -48,21 +49,28 @@ QUESTION
 
 ${question}
 `;
-console.log("Creating OpenRouter stream...");
+    console.log("Creating OpenRouter stream...");
+    const chatMessages = [
+      {
+        role: "system",
+        content:
+          "You are an expert AI document assistant. Answer ONLY using the supplied context. If the answer is not present, reply: I couldn't find that information in the document.",
+      },
+
+      ...history.map((m: any) => ({
+        role: m.role,
+        content: m.text,
+      })),
+
+      {
+        role: "user",
+        content: prompt,
+      },
+    ];
     const stream = await openrouter.chat.completions.create({
       model: "openai/gpt-oss-20b:free",
       stream: true,
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are an expert AI document assistant. Answer ONLY using the supplied context. If the answer is not present, reply: I couldn't find that information in the document.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
+      messages: chatMessages,
       temperature: 0.2,
     });
     console.log("Stream created successfully");

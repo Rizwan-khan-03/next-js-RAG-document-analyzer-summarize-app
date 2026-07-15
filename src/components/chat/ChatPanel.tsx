@@ -58,6 +58,7 @@ export default function ChatPanel({
       body: JSON.stringify({
         documentId,
         question: userQuestion,
+        history: messages,
       }),
     });
 
@@ -143,7 +144,7 @@ export default function ChatPanel({
 
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
-                  // className="prose prose-sm max-w-none"
+                // className="prose prose-sm max-w-none"
                 >
                   {message.text}
                 </ReactMarkdown>

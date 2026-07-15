@@ -1,7 +1,11 @@
 import { RagService } from "@/lib/ai/rag.service";
 
 export async function POST(req: Request) {
-  const { documentId, question } = await req.json();
+  const {
+    documentId,
+    question,
+    history = [],
+  } = await req.json();
 
   const { stream, sources } =
     await RagService.askQuestion(
