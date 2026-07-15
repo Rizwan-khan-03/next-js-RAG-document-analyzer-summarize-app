@@ -10,7 +10,7 @@ export default function DocumentSidebar({
 
       {/* Header */}
 
-      <div className="bg-white rounded-xl border shadow-sm p-5">
+      <div className="rounded-xl border shadow-sm p-5">
         <h6 className="text-sm font-bold break-all">
           {document.fileName}
         </h6>
@@ -45,7 +45,7 @@ export default function DocumentSidebar({
       </div>
        {/* Keywords */}
 
-      <div className="bg-white rounded-xl border shadow-sm p-5">
+      <div className="rounded-xl border shadow-sm p-5">
 
         <h2 className="font-semibold text-lg mb-3">
           🏷 Keywords
@@ -70,7 +70,7 @@ export default function DocumentSidebar({
 
       {/* Summary */}
 
-      <div className="bg-white rounded-xl border shadow-sm p-5">
+      <div className=" rounded-xl border shadow-sm p-5">
         <h2 className="font-semibold text-lg mb-3">
           📄 Summary
         </h2>

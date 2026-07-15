@@ -63,7 +63,7 @@ export default function PdfViewer({
     return (
         <div
             ref={viewerRef}
-            className="w-full h-full overflow-auto border rounded-lg p-2 bg-white"
+            className="w-full h-full overflow-auto "
         >
             <Document
                 file={fileUrl}
@@ -71,43 +71,14 @@ export default function PdfViewer({
             >
                 <Page
                     pageNumber={pageNumber}
-                    width={700}
+                    width={600}
                     renderTextLayer={true}
                     renderAnnotationLayer={true}
                 />
-                {/* <Page
-                    pageNumber={pageNumber}
-                    width={700}
-                    customTextRenderer={({ str }) => {
-                        if (!highlightText) return str;
-
-                        const words = highlightText
-                            .toLowerCase()
-                            .split(/\s+/)
-                            .filter((w) => w.length > 3);
-
-                        const match = words.some((word) =>
-                            str.toLowerCase().includes(word)
-                        );
-
-                        if (match) {
-                            return `
-      <mark style="
-        background:#fde047;
-        border-radius:3px;
-        padding:2px;
-      ">
-        ${str}
-      </mark>
-    `;
-                        }
-
-                        return str;
-                    }}
-                /> */}
+               
             </Document>
 
-            <div className="mt-3 text-center text-sm text-gray-500">
+            <div className="mt-1 text-center text-sm text-gray-500">
                 Page {pageNumber} of {numPages}
             </div>
             {highlightText && (

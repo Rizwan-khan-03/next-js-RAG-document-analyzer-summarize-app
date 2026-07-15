@@ -22,7 +22,7 @@ export default function DocumentWorkspace({
 
   return (
 
-    <div className="grid grid-cols-[320px_420px_1fr] gap-6 h-[calc(100vh-110px)]">
+    <div className="grid grid-cols-[320px_420px_1fr] gap-6 h-[calc(100vh-80px)]">
 
       {/* Sidebar */}
 
@@ -32,7 +32,7 @@ export default function DocumentWorkspace({
 
       {/* Chat */}
 
-      <div className="bg-white rounded-xl border shadow-sm p-5 flex flex-col h-full overflow-hidden">
+      <div className="rounded-xl border shadow-sm p-5 flex flex-col h-full overflow-hidden">
 
         <h2 className="font-semibold text-xl ">
           🤖 AI Assistant
@@ -50,7 +50,7 @@ export default function DocumentWorkspace({
 
       {/* PDF */}
 
-      <div className="bg-white rounded-xl border shadow-sm p-5 overflow-hidden">
+      <div className="rounded-xl border shadow-sm p-5 overflow-hidden">
 
         <PdfViewer
           fileUrl={document.filePath}

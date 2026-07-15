@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface Source {
   pageNumber: number;
@@ -59,16 +61,16 @@ export default function ChatPanel({
       }),
     });
 
-    if (!response.body) return;
+    if (!response.body) {
+      setLoading(false);
+      return;
+    }
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
 
-    let answer = "";
-    let sources: Source[] = [];
-    let firstChunk = true;
+    let buffer = "";
 
-    // Empty assistant message
     setMessages((prev) => [
       ...prev,
       {
@@ -83,25 +85,30 @@ export default function ChatPanel({
 
       if (done) break;
 
-      let chunk = decoder.decode(value);
+      buffer += decoder.decode(value, {
+        stream: true,
+      });
 
-      // First chunk contains sources
-      if (firstChunk && chunk.startsWith("__SOURCES__")) {
-        firstChunk = false;
+      let answer = buffer;
+      let sources: Source[] = [];
 
-        const newline = chunk.indexOf("\n");
+      const marker = "__SOURCES__";
 
-        const sourceJson = chunk.substring(
-          "__SOURCES__".length,
-          newline
-        );
+      const index = buffer.indexOf(marker);
 
-        sources = JSON.parse(sourceJson);
+      if (index !== -1) {
+        answer = buffer.substring(0, index);
 
-        chunk = chunk.substring(newline + 1);
+        const json = buffer
+          .substring(index + marker.length)
+          .trim();
+
+        try {
+          sources = JSON.parse(json);
+        } catch {
+          // wait until JSON completes
+        }
       }
-
-      answer += chunk;
 
       setMessages((prev) => {
         const copy = [...prev];
@@ -134,11 +141,14 @@ export default function ChatPanel({
             ) : (
               <div className="bg-gray-100 rounded-xl p-3 mr-12">
 
-                <p className="whitespace-pre-wrap">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  // className="prose prose-sm max-w-none"
+                >
                   {message.text}
-                </p>
+                </ReactMarkdown>
 
-                {message.sources && message.text && message.text.trim() !== "" && message.sources.length > 0 &&
+                {message.sources &&
                   message.sources.length > 0 && (
                     <div className="mt-4 flex flex-wrap gap-2">
 
