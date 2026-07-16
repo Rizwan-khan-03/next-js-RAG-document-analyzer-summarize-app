@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -34,6 +34,25 @@ export default function ChatPanel({
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    async function loadHistory() {
+      const res = await fetch(
+        `/api/chat/history/${documentId}`
+      );
+
+      const history = await res.json();
+
+      setMessages(
+        history.map((m: any) => ({
+          role: m.role,
+          text: m.content,
+          sources: m.sources ?? [],
+        }))
+      );
+    }
+
+    loadHistory();
+  }, [documentId]);
   async function askAI() {
     if (!question.trim()) return;
 
