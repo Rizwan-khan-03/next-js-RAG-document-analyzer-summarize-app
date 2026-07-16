@@ -1,49 +1,78 @@
 import { RagService } from "@/lib/ai/rag.service";
+import { ChatService } from "@/lib/chat/chat.service";
 
 export async function POST(req: Request) {
-  const {
-    documentId,
-    question,
-    history = [],
-  } = await req.json();
-
-  const { stream, sources } =
-    await RagService.askQuestion(
+  try {
+    const {
       documentId,
-      question
-    );
+      question,
+      history = [],
+    } = await req.json();
 
-  const encoder = new TextEncoder();
+    console.log("Document ID:", documentId);
 
-  const readable = new ReadableStream({
-    async start(controller) {
+    const session = await ChatService.getOrCreateSession(documentId);
 
-      for await (const chunk of stream as any) {
+    console.log("Session:", session);
 
-        const text =
-          chunk.choices?.[0]?.delta?.content;
+    await ChatService.saveMessage({
+      sessionId: session.id,
+      role: "user",
+      content: question,
+    });
 
-        if (text) {
-          controller.enqueue(
-            encoder.encode(text)
-          );
-        }
-      }
+    let fullAnswer = "";
 
-      controller.enqueue(
-        encoder.encode(
-          "\n__SOURCES__" +
-          JSON.stringify(sources)
-        )
+    const { stream, sources } =
+      await RagService.askQuestion(
+        documentId,
+        question,
+        history
       );
 
-      controller.close();
-    },
-  });
+    const encoder = new TextEncoder();
 
-  return new Response(readable, {
-    headers: {
-      "Content-Type": "text/plain",
-    },
-  });
+    const readable = new ReadableStream({
+      async start(controller) {
+        for await (const chunk of stream as any) {
+          const text =
+            chunk.choices?.[0]?.delta?.content;
+
+          if (text) {
+            fullAnswer += text;
+            controller.enqueue(encoder.encode(text));
+          }
+        }
+
+        await ChatService.saveMessage({
+          sessionId: session.id,
+          role: "assistant",
+          content: fullAnswer,
+          sources,
+        });
+
+        controller.enqueue(
+          encoder.encode(
+            "\n__SOURCES__" + JSON.stringify(sources)
+          )
+        );
+
+        controller.close();
+      },
+    });
+
+    return new Response(readable, {
+      headers: {
+        "Content-Type": "text/plain",
+      },
+    });
+  } catch (err) {
+    console.error("CHAT API ERROR");
+    console.error(err);
+
+    return Response.json(
+      { error: String(err) },
+      { status: 500 }
+    );
+  }
 }

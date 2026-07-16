@@ -22,6 +22,7 @@ model Document {
   updatedAt     DateTime @updatedAt
 
   chunks        DocumentChunk[]
+  chatSessions  ChatSession[]
 }
 
 model DocumentChunk {
@@ -38,4 +39,28 @@ model DocumentChunk {
   embedding   Unsupported("vector(3072)")?
 
   createdAt   DateTime @default(now())
+}
+model ChatSession {
+  id         String        @id @default(cuid())
+  documentId String
+  document   Document      @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  messages   ChatMessage[]
+
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+}
+
+model ChatMessage {
+  id         String      @id @default(cuid())
+
+  sessionId  String
+  session    ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  role       String
+  content    String
+
+  sources    Json?
+
+  createdAt  DateTime @default(now())
 }
