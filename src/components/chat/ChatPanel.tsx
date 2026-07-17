@@ -18,41 +18,51 @@ interface Message {
 
 interface ChatPanelProps {
   documentId: string;
+  sessionId?: string;
   onSourceSelect: (source: Source) => void;
 }
 
 export default function ChatPanel({
   documentId,
+  sessionId,
   onSourceSelect,
 }: ChatPanelProps) {
   console.log("ChatPanel props", {
     documentId,
     onSourceSelect,
+    sessionId,
     type: typeof onSourceSelect,
   });
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  console.log("Current Session:", sessionId);
 
   useEffect(() => {
-    async function loadHistory() {
-      const res = await fetch(
-        `/api/chat/history/${documentId}`
-      );
+    console.log("🔥 useEffect fired", sessionId);
+    loadMessages();
+  }, [sessionId]);
 
-      const history = await res.json();
+  // useEffect(() => {
+  //   async function loadHistory() {
+  //     const res = await fetch(
+  //       `/api/chat/history/${documentId}`
+  //     );
 
-      setMessages(
-        history.map((m: any) => ({
-          role: m.role,
-          text: m.content,
-          sources: m.sources ?? [],
-        }))
-      );
-    }
+  //     const history = await res.json();
 
-    loadHistory();
-  }, [documentId]);
+  //     setMessages(
+  //       history.map((m: any) => ({
+  //         role: m.role,
+  //         text: m.content,
+  //         sources: m.sources ?? [],
+  //       }))
+  //     );
+  //   }
+
+  //   loadHistory();
+  // }, [documentId]);
+
   async function askAI() {
     if (!question.trim()) return;
 
@@ -145,12 +155,37 @@ export default function ChatPanel({
 
     setLoading(false);
   }
+async function loadMessages() {
+  console.log("Loading Session:", sessionId);
 
+  if (!sessionId) {
+    console.log("No session selected");
+    setMessages([]);
+    return;
+  }
+
+  const res = await fetch(
+    `/api/chat/message?sessionId=${sessionId}`
+  );
+
+  const data = await res.json();
+
+  console.log("API returned:", data);
+
+  const formatted = data.map((msg: any) => ({
+    role: msg.role,
+    text: msg.content,
+    sources: msg.sources ?? [],
+  }));
+
+  console.log("Formatted:", formatted);
+
+  setMessages(formatted);
+}
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
 
-      <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-
+     <div className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0">
         {messages.map((message, index) => (
           <div key={index}>
 
@@ -159,7 +194,7 @@ export default function ChatPanel({
                 {message.text}
               </div>
             ) : (
-              <div className="bg-gray-100 rounded-xl p-3 mr-12">
+              <div className="bg-gray-100 text-black  rounded-xl p-3 mr-12">
 
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
@@ -203,28 +238,31 @@ export default function ChatPanel({
         ))}
 
         {loading && (
-          <div className="bg-gray-100 rounded-xl p-3 mr-12">
+          <div className="bg-gray-100 text-black rounded-xl p-3 mr-12">
             Thinking...
           </div>
         )}
 
       </div>
 
-      <div className="border-t pt-4">
-        <textarea
-          className="w-full border rounded-lg p-3 resize-none"
-          rows={3}
-          value={question}
-          placeholder="Ask anything..."
-          onChange={(e) => setQuestion(e.target.value)}
-        />
+     <div className="flex-shrink-0 border-t bg-white p-2 text-black">
+        <div className="flex items-end gap-2 rounded-2xl border border-gray-200 bg-gray-50 p-2">
+          <textarea
+            className="min-h-[44px] max-h-[140px] flex-1 resize-none border-0 bg-transparent p-1 text-sm outline-none focus:ring-0"
+            rows={1}
+            value={question}
+            placeholder="Ask anything..."
+            onChange={(e) => setQuestion(e.target.value)}
+          />
 
-        <button
-          onClick={askAI}
-          className="w-full mt-3 bg-black text-white rounded-lg py-3"
-        >
-          Send
-        </button>
+          <button
+            onClick={askAI}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-black text-white transition hover:bg-gray-900"
+            aria-label="Send message"
+          >
+            ➤
+          </button>
+        </div>
       </div>
 
     </div>

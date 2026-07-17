@@ -63,7 +63,7 @@ export default function PdfViewer({
     return (
         <div
             ref={viewerRef}
-            className="w-full h-full overflow-auto "
+            className="w-full h-full min-h-0 overflow-auto"
         >
             <Document
                 file={fileUrl}

@@ -36,23 +36,25 @@ model DocumentChunk {
 
   content     String
 
-  embedding   Unsupported("vector(3072)")?
-
   createdAt   DateTime @default(now())
 }
+
 model ChatSession {
-  id         String        @id @default(cuid())
-  documentId String
-  document   Document      @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
 
-  messages   ChatMessage[]
+  documentId  String
+  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
 
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
+  title       String   @default("New Chat")
+
+  messages    ChatMessage[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model ChatMessage {
-  id         String      @id @default(cuid())
+  id         String   @id @default(cuid())
 
   sessionId  String
   session    ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)

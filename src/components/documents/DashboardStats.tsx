@@ -22,7 +22,7 @@ export default function DashboardStats() {
   }
 
   return (
-    <div className="grid grid-cols-3 gap-4 mt-6">
+    <div className="">
       <div className="border rounded p-4">
         <h3>Total Documents</h3>
         <p className="text-2xl font-bold">

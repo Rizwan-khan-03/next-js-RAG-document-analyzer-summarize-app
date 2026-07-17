@@ -6,7 +6,7 @@ export default function DocumentSidebar({
   document,
 }: Props) {
   return (
-    <div className="h-full overflow-y-auto space-y-6">
+    <div className="h-full min-h-0 overflow-y-auto space-y-6 p-1">
 
       {/* Header */}
 

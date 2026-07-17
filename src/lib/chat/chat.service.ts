@@ -76,4 +76,19 @@ export class ChatService {
             },
         });
     }
+    static async getSessions(documentId: string) {
+        return prisma.chatSession.findMany({
+            where: {
+                documentId,
+            },
+            orderBy: {
+                updatedAt: "desc",
+            },
+            select: {
+                id: true,
+                title: true,
+                updatedAt: true,
+            },
+        });
+    }
 }
