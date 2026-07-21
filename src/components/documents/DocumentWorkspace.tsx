@@ -21,6 +21,8 @@ export default function DocumentWorkspace({
     useState("");
   const [selectedSessionId, setSelectedSessionId] =
     useState<string>();
+  const [selectedSessionTitle, setSelectedSessionTitle] =
+    useState("New Chat");
   console.log("Selected Session:", selectedSessionId);
   
   return (
@@ -31,32 +33,37 @@ export default function DocumentWorkspace({
         <DocumentSidebar document={document} />
       </div>
 
-      {/* 2. Second Container: ChatSidebar (10% Width) */}
-      <div className="md:col-span-1 border rounded-xl h-full min-h-0 overflow-hidden">
-        <ChatSidebar
-          documentId={document.id}
-          selectedSessionId={selectedSessionId}
-          onSelect={(id) => {
-            console.log("DocumentWorkspace received:", id);
-            setSelectedSessionId(id);
-          }}
-        />
-      </div>
+      {/* 2. Combined chat container */}
+      <div className="md:col-span-4 flex h-full min-h-0 overflow-hidden rounded-xl border border-slate-700 bg-slate-900/90 shadow-sm">
+        <div className="grid w-full min-w-0 grid-cols-[220px_minmax(0,1fr)]">
+          <div className="min-h-0 border-r border-slate-700 bg-slate-900/80">
+            <ChatSidebar
+              documentId={document.id}
+              selectedSessionId={selectedSessionId}
+              onSelect={(session) => {
+                setSelectedSessionId(session.id);
+                setSelectedSessionTitle(session.title || "New Chat");
+              }}
+            />
+          </div>
 
-      {/* 3. Third Container: Chat Panel (20% Width) */}
-      <div className="md:col-span-3 flex flex-col rounded-xl border shadow-sm h-full min-h-0 overflow-hidden">
-        <h2 className="flex-shrink-0 font-semibold text-xl p-5 border-b">
-          🤖 AI Assistant
-        </h2>
-        <div className="flex-1 min-h-0">
-          <ChatPanel
-            documentId={document.id}
-            sessionId={selectedSessionId}
-            onSourceSelect={(source) => {
-              setCurrentPage(source.pageNumber);
-              setHighlightText(source.content);
-            }}
-          />
+          <div className="flex min-h-0 flex-col overflow-hidden">
+            <h2 className="flex-shrink-0 border-b border-slate-700 p-5 text-xl font-semibold text-white">
+              {selectedSessionTitle || "🤖 AI Assistant"}
+            </h2>
+            <div className="flex-1 min-h-0">
+              <ChatPanel
+                documentId={document.id}
+                sessionId={selectedSessionId}
+                activeTitle={selectedSessionTitle}
+                onTitleChange={(title) => setSelectedSessionTitle(title)}
+                onSourceSelect={(source) => {
+                  setCurrentPage(source.pageNumber);
+                  setHighlightText(source.content);
+                }}
+              />
+            </div>
+          </div>
         </div>
       </div>
 

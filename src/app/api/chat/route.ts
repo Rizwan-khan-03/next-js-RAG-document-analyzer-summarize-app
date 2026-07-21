@@ -5,21 +5,33 @@ export async function POST(req: Request) {
   try {
     const {
       documentId,
+      sessionId,
       question,
       history = [],
     } = await req.json();
 
+    if (!sessionId) {
+      return Response.json(
+        { error: "Session ID is required" },
+        { status: 400 }
+      );
+    }
+
     console.log("Document ID:", documentId);
+    console.log("Session ID:", sessionId);
 
-    const session = await ChatService.getOrCreateSession(documentId);
-
-    console.log("Session:", session);
-
+    // Save User Message
     await ChatService.saveMessage({
-      sessionId: session.id,
+      sessionId,
       role: "user",
       content: question,
     });
+
+    const title = question.length > 40
+      ? question.slice(0, 40) + "..."
+      : question;
+
+    await ChatService.updateSessionTitleIfNeeded(sessionId, title);
 
     let fullAnswer = "";
 
@@ -40,12 +52,15 @@ export async function POST(req: Request) {
 
           if (text) {
             fullAnswer += text;
-            controller.enqueue(encoder.encode(text));
+            controller.enqueue(
+              encoder.encode(text)
+            );
           }
         }
 
+        // Save Assistant Message
         await ChatService.saveMessage({
-          sessionId: session.id,
+          sessionId,
           role: "assistant",
           content: fullAnswer,
           sources,
@@ -53,14 +68,22 @@ export async function POST(req: Request) {
 
         controller.enqueue(
           encoder.encode(
-            "\n__SOURCES__" + JSON.stringify(sources)
+            "\n__SOURCES__" +
+            JSON.stringify(sources)
           )
         );
 
         controller.close();
       },
     });
-
+    console.log("Saved user message to session:", sessionId);
+    console.log("Saved assistant message to session:", sessionId);
+    console.log("=== API RECEIVED ===");
+    console.log({
+      documentId,
+      sessionId,
+      question,
+    });
     return new Response(readable, {
       headers: {
         "Content-Type": "text/plain",

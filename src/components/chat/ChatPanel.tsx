@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { KeyboardEvent, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -19,54 +19,42 @@ interface Message {
 interface ChatPanelProps {
   documentId: string;
   sessionId?: string;
+  activeTitle?: string;
+  onTitleChange?: (title: string) => void;
   onSourceSelect: (source: Source) => void;
 }
 
 export default function ChatPanel({
   documentId,
   sessionId,
+  activeTitle,
+  onTitleChange,
   onSourceSelect,
 }: ChatPanelProps) {
-  console.log("ChatPanel props", {
-    documentId,
-    onSourceSelect,
-    sessionId,
-    type: typeof onSourceSelect,
-  });
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
-  console.log("Current Session:", sessionId);
+  const activeSessionIdRef = useRef<string | undefined>(sessionId);
 
   useEffect(() => {
-    console.log("🔥 useEffect fired", sessionId);
-    loadMessages();
+    activeSessionIdRef.current = sessionId;
+    setMessages([]);
+    void loadMessages(sessionId);
   }, [sessionId]);
 
-  // useEffect(() => {
-  //   async function loadHistory() {
-  //     const res = await fetch(
-  //       `/api/chat/history/${documentId}`
-  //     );
-
-  //     const history = await res.json();
-
-  //     setMessages(
-  //       history.map((m: any) => ({
-  //         role: m.role,
-  //         text: m.content,
-  //         sources: m.sources ?? [],
-  //       }))
-  //     );
-  //   }
-
-  //   loadHistory();
-  // }, [documentId]);
+ 
 
   async function askAI() {
-    if (!question.trim()) return;
+    if (!question.trim() || !sessionId) return;
 
-    const userQuestion = question;
+    const userQuestion = question.trim();
+    const currentSessionId = sessionId;
+    const previousMessages = messages;
+    const nextTitle = userQuestion.length > 40
+      ? userQuestion.slice(0, 40) + "..."
+      : userQuestion;
+
+    onTitleChange?.(nextTitle);
 
     setMessages((prev) => [
       ...prev,
@@ -86,8 +74,9 @@ export default function ChatPanel({
       },
       body: JSON.stringify({
         documentId,
+        sessionId: currentSessionId,
         question: userQuestion,
-        history: messages,
+        history: previousMessages,
       }),
     });
 
@@ -123,7 +112,6 @@ export default function ChatPanel({
       let sources: Source[] = [];
 
       const marker = "__SOURCES__";
-
       const index = buffer.indexOf(marker);
 
       if (index !== -1) {
@@ -140,8 +128,16 @@ export default function ChatPanel({
         }
       }
 
+      if (activeSessionIdRef.current !== currentSessionId) {
+        break;
+      }
+
       setMessages((prev) => {
         const copy = [...prev];
+
+        if (copy.length === 0) {
+          return prev;
+        }
 
         copy[copy.length - 1] = {
           role: "assistant",
@@ -154,38 +150,51 @@ export default function ChatPanel({
     }
 
     setLoading(false);
-  }
-async function loadMessages() {
-  console.log("Loading Session:", sessionId);
 
-  if (!sessionId) {
-    console.log("No session selected");
-    setMessages([]);
-    return;
+    if (activeSessionIdRef.current === currentSessionId) {
+      await loadMessages(currentSessionId);
+    }
   }
 
-  const res = await fetch(
-    `/api/chat/message?sessionId=${sessionId}`
-  );
+  async function loadMessages(targetSessionId = sessionId) {
+    if (!targetSessionId) {
+      setMessages([]);
+      return;
+    }
 
-  const data = await res.json();
+    const res = await fetch(
+      `/api/chat/message?sessionId=${targetSessionId}`
+    );
 
-  console.log("API returned:", data);
+    if (activeSessionIdRef.current !== targetSessionId) {
+      return;
+    }
 
-  const formatted = data.map((msg: any) => ({
-    role: msg.role,
-    text: msg.content,
-    sources: msg.sources ?? [],
-  }));
+    const data = await res.json();
 
-  console.log("Formatted:", formatted);
+    const formatted = data.map((msg: any) => ({
+      role: msg.role,
+      text: msg.content,
+      sources: msg.sources ?? [],
+    }));
 
-  setMessages(formatted);
-}
+    setMessages(formatted);
+  }
+  function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      void askAI();
+    }
+  }
+
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-transparent text-white">
 
-     <div className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0">
+      <div className="border-b border-slate-700 bg-slate-900/70 px-4 py-3 text-sm font-medium text-slate-100">
+        {activeTitle || "New Chat"}
+      </div>
+
+      <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-4">
         {messages.map((message, index) => (
           <div key={index}>
 
@@ -245,14 +254,15 @@ async function loadMessages() {
 
       </div>
 
-     <div className="flex-shrink-0 border-t bg-white p-2 text-black">
-        <div className="flex items-end gap-2 rounded-2xl border border-gray-200 bg-gray-50 p-2">
+      <div className="flex-shrink-0 border-t border-slate-700 bg-slate-900/70 p-2 text-slate-100">
+        <div className="flex items-end gap-2 rounded-2xl border border-slate-700 bg-slate-800 p-2">
           <textarea
             className="min-h-[44px] max-h-[140px] flex-1 resize-none border-0 bg-transparent p-1 text-sm outline-none focus:ring-0"
             rows={1}
             value={question}
             placeholder="Ask anything..."
             onChange={(e) => setQuestion(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
 
           <button

@@ -1,50 +1,6 @@
 import { prisma } from "@/lib/prisma/client";
-console.log("Prisma Keys:", Object.keys(prisma));
+
 export class ChatService {
-    // static async getOrCreateSession(documentId: string) {
-    //     let session = await prisma.chatSession.findFirst({
-    //         where: {
-    //             documentId,
-    //         },
-    //         orderBy: {
-    //             createdAt: "asc",
-    //         },
-    //     });
-
-    //     if (!session) {
-    //         session = await prisma.chatSession.create({
-    //             data: {
-    //                 documentId,
-    //             },
-    //         });
-    //     }
-
-    //     return session;
-    // }
-    static async getOrCreateSession(documentId: string) {
-        console.log("Prisma Client:", prisma);
-
-        console.log("chatSession:", prisma.chatSession);
-
-        let session = await prisma.chatSession.findFirst({
-            where: {
-                documentId,
-            },
-        });
-
-        console.log("Found:", session);
-
-        if (!session) {
-            session = await prisma.chatSession.create({
-                data: {
-                    documentId,
-                },
-            });
-        }
-
-        return session;
-    }
-
     static async saveMessage({
         sessionId,
         role,
@@ -88,6 +44,36 @@ export class ChatService {
                 id: true,
                 title: true,
                 updatedAt: true,
+            },
+        });
+    }
+    static async createSession(documentId: string) {
+        return prisma.chatSession.create({
+            data: {
+                documentId,
+                title: "New Chat",
+            },
+        });
+    }
+    static async updateSessionTitleIfNeeded(
+        sessionId: string,
+        title: string
+    ) {
+        return prisma.chatSession.updateMany({
+            where: {
+                id: sessionId,
+                title: "New Chat",
+            },
+            data: {
+                title,
+            },
+        });
+    }
+
+    static async deleteSession(sessionId: string) {
+        return prisma.chatSession.delete({
+            where: {
+                id: sessionId,
             },
         });
     }
