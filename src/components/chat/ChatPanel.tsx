@@ -215,28 +215,23 @@ export default function ChatPanel({
                 {message.sources &&
                   message.sources.length > 0 && (
                     <div className="mt-4 flex flex-wrap gap-2">
-
-                      {message.sources.map(
-                        (source, i) => (
-                          <button
-                            key={i}
-                            onClick={() => {
-                              console.log("clicked", source);
-                              console.log("callback", onSourceSelect);
-
-                              if (typeof onSourceSelect === "function") {
-                                onSourceSelect(source);
-                              } else {
-                                console.error("onSourceSelect is NOT a function");
-                              }
-                            }}
-                            className="bg-blue-100 hover:bg-blue-200 rounded-lg px-3 py-2 text-sm"
-                          >
-                            📄 Page {source.pageNumber}
-                          </button>
-                        )
-                      )}
-
+                      {Array.from(
+                        new Map(
+                          message.sources.map((source) => [source.pageNumber, source])
+                        ).values()
+                      ).map((source, i) => (
+                        <button
+                          key={`${source.pageNumber}-${i}`}
+                          onClick={() => {
+                            if (typeof onSourceSelect === "function") {
+                              onSourceSelect(source);
+                            }
+                          }}
+                          className="bg-blue-100 hover:bg-blue-200 rounded-lg px-3 py-2 text-sm"
+                        >
+                          📄 Page {source.pageNumber}
+                        </button>
+                      ))}
                     </div>
                   )}
 
