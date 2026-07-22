@@ -3,6 +3,8 @@
 import { KeyboardEvent, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import DocumentActions from "./DocumentActions";
+import SuggestedQuestions from "./SuggestedQuestions";
 
 interface Source {
   pageNumber: number;
@@ -24,6 +26,39 @@ interface ChatPanelProps {
   onSourceSelect: (source: Source) => void;
 }
 
+const defaultSuggestions = [
+  {
+    id: "summary",
+    title: "Summarize this document",
+    prompt: "Summarize this document in simple, concise language.",
+  },
+  {
+    id: "key-points",
+    title: "Extract key points",
+    prompt: "List the most important points from this document.",
+  },
+  {
+    id: "action-items",
+    title: "Identify action items",
+    prompt: "Identify any action items, deadlines, or decisions in this document.",
+  },
+  {
+    id: "risks",
+    title: "Highlight risks",
+    prompt: "Highlight any risks, concerns, or red flags in this document.",
+  },
+  {
+    id: "questions",
+    title: "Generate follow-up questions",
+    prompt: "Generate a set of smart follow-up questions about this document.",
+  },
+  {
+    id: "compare",
+    title: "Compare key themes",
+    prompt: "Compare the main themes and ideas in this document.",
+  },
+];
+
 export default function ChatPanel({
   documentId,
   sessionId,
@@ -42,12 +77,14 @@ export default function ChatPanel({
     void loadMessages(sessionId);
   }, [sessionId]);
 
- 
 
-  async function askAI() {
-    if (!question.trim() || !sessionId) return;
 
-    const userQuestion = question.trim();
+  async function sendMessage(promptOverride?: string) {
+    const nextQuestion = (promptOverride ?? question).trim();
+
+    if (!nextQuestion || !sessionId) return;
+
+    const userQuestion = nextQuestion;
     const currentSessionId = sessionId;
     const previousMessages = messages;
     const nextTitle = userQuestion.length > 40
@@ -183,18 +220,26 @@ export default function ChatPanel({
   function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
-      void askAI();
+      void sendMessage();
     }
   }
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-transparent text-white">
-
-      <div className="border-b border-slate-700 bg-slate-900/70 px-4 py-3 text-sm font-medium text-slate-100">
-        {activeTitle || "New Chat"}
-      </div>
-
       <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-4">
+        {messages.length === 0 && !loading ? (
+          <div className="space-y-4">
+
+            <DocumentActions
+              onAction={(prompt) => {
+                void sendMessage(prompt);
+              }}
+            />
+          </div>
+        ) : null}
+
+
+
         {messages.map((message, index) => (
           <div key={index}>
 
@@ -261,7 +306,9 @@ export default function ChatPanel({
           />
 
           <button
-            onClick={askAI}
+            onClick={() => {
+              void sendMessage();
+            }}
             className="flex h-10 w-10 items-center justify-center rounded-full bg-black text-white transition hover:bg-gray-900"
             aria-label="Send message"
           >

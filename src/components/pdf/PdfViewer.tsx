@@ -71,7 +71,7 @@ export default function PdfViewer({
             >
                 <Page
                     pageNumber={pageNumber}
-                    width={600}
+                    width={570}
                     renderTextLayer={true}
                     renderAnnotationLayer={true}
                 />

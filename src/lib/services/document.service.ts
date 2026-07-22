@@ -83,10 +83,11 @@ static async saveChunks(
   });
 
   await prisma.documentChunk.createMany({
-    data: chunks.map((content, index) => ({
+    data : chunks.map((content, index) => ({
       documentId,
       chunkIndex: index,
       content,
+      pageNumber: 0,
     })),
   });
 }

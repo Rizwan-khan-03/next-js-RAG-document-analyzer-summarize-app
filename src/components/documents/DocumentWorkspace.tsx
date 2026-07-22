@@ -35,7 +35,7 @@ export default function DocumentWorkspace({
 
       {/* 2. Combined chat container */}
       <div className="md:col-span-4 flex h-full min-h-0 overflow-hidden rounded-xl border border-slate-700 bg-slate-900/90 shadow-sm">
-        <div className="grid w-full min-w-0 grid-cols-[220px_minmax(0,1fr)]">
+        <div className="grid w-full min-w-0 grid-cols-[200px_minmax(0,1fr)]">
           <div className="min-h-0 border-r border-slate-700 bg-slate-900/80">
             <ChatSidebar
               documentId={document.id}
@@ -49,7 +49,7 @@ export default function DocumentWorkspace({
 
           <div className="flex min-h-0 flex-col overflow-hidden">
             <h2 className="flex-shrink-0 border-b border-slate-700 p-5 text-xl font-semibold text-white">
-              {selectedSessionTitle || "🤖 AI Assistant"}
+              {"🤖 AI Assistant"}
             </h2>
             <div className="flex-1 min-h-0">
               <ChatPanel

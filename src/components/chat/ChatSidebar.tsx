@@ -108,7 +108,7 @@ export default function ChatSidebar({
                                 onClick={() => {
                                     onSelect({ id: session.id, title: session.title });
                                 }}
-                                className="flex flex-1 items-start text-left"
+                                className="flex flex-1 items-start text-left text-xs text-slate-100 transition hover:text-white focus:outline-none"
                             >
                                 <span className="mr-2">💬</span>
                                 <span className="break-words text-slate-100">{session.title}</span>
