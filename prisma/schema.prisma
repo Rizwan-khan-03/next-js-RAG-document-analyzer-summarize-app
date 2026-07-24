@@ -63,6 +63,7 @@ model ChatMessage {
   content    String
 
   sources    Json?
+  feedback   String?
 
   createdAt  DateTime @default(now())
 }

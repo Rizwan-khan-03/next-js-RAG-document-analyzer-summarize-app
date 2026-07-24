@@ -8,6 +8,7 @@ export async function POST(req: Request) {
       sessionId,
       question,
       history = [],
+      replaceAssistantMessageId,
     } = await req.json();
 
     if (!sessionId) {
@@ -20,18 +21,19 @@ export async function POST(req: Request) {
     console.log("Document ID:", documentId);
     console.log("Session ID:", sessionId);
 
-    // Save User Message
-    await ChatService.saveMessage({
-      sessionId,
-      role: "user",
-      content: question,
-    });
+    if (!replaceAssistantMessageId) {
+      await ChatService.saveMessage({
+        sessionId,
+        role: "user",
+        content: question,
+      });
 
-    const title = question.length > 40
-      ? question.slice(0, 40) + "..."
-      : question;
+      const title = question.length > 40
+        ? question.slice(0, 40) + "..."
+        : question;
 
-    await ChatService.updateSessionTitleIfNeeded(sessionId, title);
+      await ChatService.updateSessionTitleIfNeeded(sessionId, title);
+    }
 
     let fullAnswer = "";
 
@@ -58,13 +60,19 @@ export async function POST(req: Request) {
           }
         }
 
-        // Save Assistant Message
-        await ChatService.saveMessage({
-          sessionId,
-          role: "assistant",
-          content: fullAnswer,
-          sources,
-        });
+        if (replaceAssistantMessageId) {
+          await ChatService.updateMessageContent(replaceAssistantMessageId, {
+            content: fullAnswer,
+            sources,
+          });
+        } else {
+          await ChatService.saveMessage({
+            sessionId,
+            role: "assistant",
+            content: fullAnswer,
+            sources,
+          });
+        }
 
         controller.enqueue(
           encoder.encode(
