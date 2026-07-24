@@ -1,6 +1,14 @@
 import { prisma } from "@/lib/prisma/client";
 
+export type FeedbackType = "LIKE" | "DISLIKE";
+
 export class ChatService {
+    static async ensureFeedbackColumn() {
+        await prisma.$executeRawUnsafe(
+            'ALTER TABLE "ChatMessage" ADD COLUMN IF NOT EXISTS "feedback" TEXT;'
+        );
+    }
+
     static async saveMessage({
         sessionId,
         role,
@@ -23,12 +31,82 @@ export class ChatService {
     }
 
     static async getMessages(sessionId: string) {
-        return prisma.chatMessage.findMany({
+        try {
+            return await prisma.chatMessage.findMany({
+                where: {
+                    sessionId,
+                },
+                orderBy: {
+                    createdAt: "asc",
+                },
+            });
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+
+            if (message.includes("feedback") && message.includes("does not exist")) {
+                await this.ensureFeedbackColumn();
+
+                return prisma.chatMessage.findMany({
+                    where: {
+                        sessionId,
+                    },
+                    orderBy: {
+                        createdAt: "asc",
+                    },
+                });
+            }
+
+            throw error;
+        }
+    }
+
+    static async updateMessageFeedback(messageId: string, feedback: FeedbackType | null) {
+        try {
+            return await prisma.chatMessage.update({
+                where: {
+                    id: messageId,
+                },
+                data: {
+                    feedback,
+                },
+            });
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+
+            if (message.includes("feedback") && message.includes("does not exist")) {
+                await this.ensureFeedbackColumn();
+
+                return prisma.chatMessage.update({
+                    where: {
+                        id: messageId,
+                    },
+                    data: {
+                        feedback,
+                    },
+                });
+            }
+
+            throw error;
+        }
+    }
+
+    static async updateMessageContent(
+        messageId: string,
+        {
+            content,
+            sources,
+        }: {
+            content: string;
+            sources?: any;
+        }
+    ) {
+        return prisma.chatMessage.update({
             where: {
-                sessionId,
+                id: messageId,
             },
-            orderBy: {
-                createdAt: "asc",
+            data: {
+                content,
+                sources,
             },
         });
     }

@@ -1,240 +1,460 @@
-You are working on an existing Next.js 15 + React + TypeScript + Tailwind AI Document Analyzer.
+You are a Senior Staff Software Engineer working on an existing production-ready AI SaaS application.
 
-The application already supports:
+Your task is NOT to generate isolated code.
 
-- Streaming AI responses
-- Multi-chat sessions
-- Chat history
-- Auto chat titles
-- Suggested Questions
-- AI Document Actions
-- Markdown rendering
-- Source citations
-- PDF navigation
+Your task is to analyze the existing project, understand the current architecture, and COMPLETE the entire "AI Response Toolbar" feature in one implementation.
 
---------------------------------------------------------
+=========================================================
+PROJECT
+=========================================================
+
+Stack
+
+- Next.js 15 (App Router)
+- React 19
+- TypeScript
+- TailwindCSS
+- Prisma
+- PostgreSQL
+- OpenAI Streaming
+- RAG Architecture
+- Multi Chat Sessions
+
+Already Implemented
+
+✅ Document Upload
+✅ OCR / Parsing
+✅ Embeddings
+✅ RAG Chat
+✅ Streaming Responses
+✅ Session History
+✅ Multiple Chat Sessions
+✅ Auto Chat Titles
+✅ Suggested Questions
+✅ AI Document Actions
+✅ Source Citations
+✅ PDF Navigation
+
+The application already behaves similarly to ChatGPT.
+
+Do NOT change existing architecture.
+
+Reuse existing services whenever possible.
+
+=========================================================
 GOAL
---------------------------------------------------------
+=========================================================
 
-Implement a reusable AI Response Toolbar that appears below every assistant response.
+Complete the entire AI Response Toolbar feature.
 
-The toolbar should become the standard action bar for every AI message.
+The toolbar should exist below EVERY assistant message.
 
-Do NOT place action buttons directly inside ChatPanel.
+Never display it for user messages.
 
-Create a reusable component.
+Toolbar Layout
 
---------------------------------------------------------
-NEW COMPONENT
---------------------------------------------------------
+-------------------------------------------------
 
-Create:
+📋 Copy
+
+🔄 Regenerate
+
+👍 Helpful
+
+👎 Not Helpful
+
+📤 Share
+
+📥 Export
+
+-------------------------------------------------
+
+The toolbar must be reusable.
+
+Do NOT place logic directly inside ChatPanel.
+
+=========================================================
+CREATE
+=========================================================
+
+Create a reusable component
 
 src/components/chat/ResponseToolbar.tsx
 
-Props:
+Props
 
 interface ResponseToolbarProps {
-    messageId: string;
-    content: string;
-    onRegenerate?: () => void;
-    onFeedback?: (type: "LIKE" | "DISLIKE") => void;
+
+    message: Message;
+
+    loading:boolean;
+
+    onCopy:()=>void;
+
+    onRegenerate:()=>void;
+
+    onFeedback:(type:"LIKE"|"DISLIKE")=>void;
+
+    onShare:()=>void;
+
+    onExport:()=>void;
+
 }
 
-The component must contain NO business logic.
+The component must contain only UI.
 
-Only UI.
+Business logic belongs inside ChatPanel.
 
---------------------------------------------------------
-VERSION 1 FEATURES
---------------------------------------------------------
+=========================================================
+FEATURES
+=========================================================
 
-Implement these buttons:
+---------------------------------------------------------
+1 COPY
+---------------------------------------------------------
 
-📋 Copy
+Already exists.
 
-🔄 Regenerate
+Keep working.
 
-👍 Helpful
+Improve UX.
 
-👎 Not Helpful
+Requirements
 
---------------------------------------------------------
-COPY
---------------------------------------------------------
+✓ navigator.clipboard
 
-When clicked
+✓ "Copied" state
 
-Copy assistant response to clipboard.
+✓ Success icon
 
-Use
+✓ Reset after 2 seconds
 
-navigator.clipboard.writeText()
+No alert()
 
-Show a temporary success state.
+No page refresh.
 
-Example
+---------------------------------------------------------
+2 REGENERATE
+---------------------------------------------------------
 
-✓ Copied
+Implement completely.
 
-for 2 seconds.
+Exactly like ChatGPT.
 
---------------------------------------------------------
-REGENERATE
---------------------------------------------------------
+Requirements
 
-Do NOT implement regeneration logic yet.
+Reuse existing chat endpoint.
 
-Only expose
+Reuse existing streaming logic.
 
-onRegenerate()
+Reuse existing session.
 
-The parent ChatPanel will implement it later.
+Reuse same document.
 
-Disable button while loading.
+Reuse same history.
 
---------------------------------------------------------
-HELPFUL
---------------------------------------------------------
+Reuse same user question.
 
-Call
+Do NOT duplicate user message.
 
-onFeedback("LIKE")
+Do NOT create new session.
 
---------------------------------------------------------
-NOT HELPFUL
---------------------------------------------------------
+Do NOT append another assistant response.
 
-Call
+Instead
 
-onFeedback("DISLIKE")
+Replace the selected assistant response.
 
---------------------------------------------------------
-UI
---------------------------------------------------------
+Algorithm
 
-Toolbar should appear
+Find clicked assistant message.
 
-ONLY
+Locate nearest previous user message.
 
-for assistant messages.
+Reuse that question.
 
-Not user messages.
+Generate new answer.
 
-Layout
+Replace assistant message.
 
-------------------------------------------------
+Streaming should work exactly like Send.
 
-📋 Copy
+---------------------------------------------------------
+3 FEEDBACK
+---------------------------------------------------------
 
-🔄 Regenerate
+Implement complete Like / Dislike system.
 
-👍 Helpful
+Backend
 
-👎 Not Helpful
+Prisma
 
-------------------------------------------------
+Add
 
-Use
+feedback
 
-small icon buttons
+to ChatMessage
 
-rounded-lg
+enum FeedbackType
 
-border
+LIKE
 
-hover animation
+DISLIKE
 
-transition
+Create
 
-consistent spacing
+POST
 
-Tailwind only.
+/api/chat/feedback
 
-No inline styles.
+Payload
 
---------------------------------------------------------
-CHAT PANEL
---------------------------------------------------------
+{
 
-Update ChatPanel
+messageId,
 
-Render
+feedback
 
-<ResponseToolbar />
+}
 
-below every assistant response.
+Frontend
 
-Do NOT place logic inside toolbar.
+Only one can be selected.
 
-Pass callbacks from ChatPanel.
+Clicking Like
 
---------------------------------------------------------
-STRUCTURE
---------------------------------------------------------
+removes Dislike.
 
-Assistant Message
+Clicking Dislike
+
+removes Like.
+
+Persist after refresh.
+
+Update UI immediately.
+
+=========================================================
+4 SHARE
+=========================================================
+
+Implement browser sharing.
+
+If
+
+navigator.share
+
+exists
+
+share
+
+Current AI response
+
+Otherwise
+
+copy response to clipboard
+
+Show toast
+
+"Copied share text"
+
+=========================================================
+5 EXPORT
+=========================================================
+
+Allow exporting ONLY the selected assistant response.
+
+Options
 
 Markdown
 
-Source Citations
+TXT
 
-Response Toolbar
+Use Blob
 
---------------------------------------------------------
+No server upload.
 
-Keep this order.
+Download locally.
 
---------------------------------------------------------
+Filename
+
+response-YYYY-MM-DD.md
+
+or
+
+response-YYYY-MM-DD.txt
+
+=========================================================
+UI REQUIREMENTS
+=========================================================
+
+Modern
+
+Minimal
+
+ChatGPT inspired
+
+Buttons
+
+Small
+
+Rounded
+
+Hover animation
+
+Icons
+
+Tooltips
+
+Disabled while loading
+
+Responsive
+
+No layout shift
+
+Toolbar spacing
+
+consistent
+
+Works on mobile.
+
+=========================================================
+CHAT PANEL
+=========================================================
+
+Refactor ChatPanel if necessary.
+
+Avoid duplicated code.
+
+Move toolbar logic into reusable handlers.
+
+Examples
+
+handleCopy()
+
+handleRegenerate()
+
+handleFeedback()
+
+handleShare()
+
+handleExport()
+
+ChatPanel should remain clean.
+
+=========================================================
 CODE QUALITY
---------------------------------------------------------
+=========================================================
 
 Strict TypeScript
 
-Reusable
-
-No duplicated code
-
 No any
 
-Clean separation
+No duplicated fetch()
 
-UI component only
+No duplicated streaming logic
 
-Business logic remains inside ChatPanel.
+No duplicated message logic
 
---------------------------------------------------------
-FUTURE READY
---------------------------------------------------------
+Reusable
 
-Design the toolbar so more buttons can be added later:
+Maintainable
 
-⭐ Share
+SOLID
 
-⭐ Export
+Clean Architecture
 
-⭐ Save
+=========================================================
+BACKEND
+=========================================================
 
-⭐ Retry
+Reuse existing APIs whenever possible.
+
+Only create new API routes if absolutely necessary.
+
+Do NOT duplicate RAG logic.
+
+Do NOT duplicate OpenAI streaming.
+
+=========================================================
+BEFORE CODING
+=========================================================
+
+Analyze the existing project.
+
+List every file that must change.
+
+Explain WHY.
+
+Identify reusable functions.
+
+Explain the architecture.
+
+Only then implement.
+
+=========================================================
+AFTER IMPLEMENTATION
+=========================================================
+
+Verify
+
+✓ Copy works
+
+✓ Regenerate works
+
+✓ Feedback persists
+
+✓ Share works
+
+✓ Export works
+
+✓ Streaming still works
+
+✓ Session history still works
+
+✓ Multi-chat still works
+
+✓ Chat titles still work
+
+✓ No duplicated user messages
+
+✓ No duplicated assistant messages
+
+✓ No duplicated sessions
+
+✓ Build passes
+
+✓ ESLint passes
+
+=========================================================
+IMPORTANT
+=========================================================
+
+Do NOT implement shortcuts.
+
+Think like a Senior Staff Engineer.
+
+Design this toolbar so future actions can be added without refactoring.
+
+Future actions include
+
+⭐ Translate
+
+⭐ Improve Answer
 
 ⭐ Explain
 
-without changing the layout.
+⭐ Simplify
 
---------------------------------------------------------
-BEFORE CODING
---------------------------------------------------------
+⭐ Expand
 
-1. Analyze current ChatPanel architecture.
+⭐ Retry
 
-2. Explain where the toolbar should render.
+⭐ Save
 
-3. List modified files.
+⭐ Pin
 
-4. Then implement.
+⭐ Bookmark
 
-Do NOT modify streaming behavior.
+The final implementation should be scalable enough that adding a new toolbar action requires only adding one configuration object instead of modifying multiple files.
 
-Do NOT modify session logic.
-
-Do NOT change backend APIs.
+Deliver production-quality code.
