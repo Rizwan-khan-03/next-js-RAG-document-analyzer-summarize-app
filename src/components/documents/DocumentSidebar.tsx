@@ -43,7 +43,7 @@ export default function DocumentSidebar({
 
         </div>
       </div>
-       {/* Keywords */}
+      {/* Keywords */}
 
       <div className="rounded-xl border shadow-sm p-5">
 
@@ -80,8 +80,6 @@ export default function DocumentSidebar({
             "Summary not available"}
         </p>
       </div>
-
-     
 
     </div>
   );
