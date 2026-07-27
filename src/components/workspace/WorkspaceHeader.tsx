@@ -1,6 +1,6 @@
 interface WorkspaceHeaderProps {
   count: number;
-  onAdd?: (data:any) => void;
+  onAdd: () => void;
 }
 
 export default function WorkspaceHeader({
@@ -16,7 +16,7 @@ export default function WorkspaceHeader({
           </h2>
 
           <p className="text-xs text-slate-400">
-            {count} document{count !== 1 && "s"}
+            {count} workspace{count !== 1 && "s"}
           </p>
         </div>
 
@@ -24,7 +24,7 @@ export default function WorkspaceHeader({
           onClick={onAdd}
           className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-500 transition"
         >
-          + Add
+          + New
         </button>
       </div>
     </div>

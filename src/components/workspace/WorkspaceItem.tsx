@@ -1,4 +1,4 @@
-import { Trash2, Folder } from "lucide-react";
+import { Folder, Pencil, Trash2 } from "lucide-react";
 import { Workspace } from "./types";
 
 interface Props {
@@ -7,12 +7,15 @@ interface Props {
   onSelect(id: string): void;
 
   onRemove(id: string): void;
+
+  onRename?(id: string): void;
 }
 
 export default function WorkspaceItem({
   workspace,
   onSelect,
   onRemove,
+  onRename,
 }: Props) {
   return (
     <div
@@ -39,15 +42,29 @@ export default function WorkspaceItem({
           </div>
         </div>
 
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onRemove(workspace.id);
-          }}
-          className="rounded-md p-2 text-slate-400 hover:bg-red-500/20 hover:text-red-400"
-        >
-          <Trash2 size={16} />
-        </button>
+        <div className="flex items-center">
+          <button
+            onClick={(event) => {
+              event.stopPropagation();
+              onRename?.(workspace.id);
+            }}
+            className="rounded-md p-2 text-slate-400 hover:bg-slate-700 hover:text-white"
+            aria-label={`Rename ${workspace.title}`}
+            title="Rename workspace (coming soon)"
+          >
+            <Pencil size={15} />
+          </button>
+          <button
+            onClick={(event) => {
+              event.stopPropagation();
+              onRemove(workspace.id);
+            }}
+            className="rounded-md p-2 text-slate-400 hover:bg-red-500/20 hover:text-red-400"
+            aria-label={`Delete ${workspace.title}`}
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
       </div>
     </div>
   );

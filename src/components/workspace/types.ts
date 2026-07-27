@@ -2,5 +2,12 @@ export interface WorkspaceDocument {
   id: string;
   title: string;
   pages: number;
-  selected?: boolean;
+  fileUrl: string;
+}
+
+export interface Workspace {
+  id: string;
+  title: string;
+  selected: boolean;
+  documents: WorkspaceDocument[];
 }

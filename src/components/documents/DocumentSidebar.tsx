@@ -17,8 +17,8 @@ export default function DocumentSidebar({
 
         <div className="mt-1 space-y-2 text-sm">
 
-          <div className="flex justify-between text-gray-600 font-semibold">
-            <span>Status</span>
+          <div className="text-sm flex justify-between text-gray-600 font-semibold">
+            <span className="text-sm">Status</span>
 
             <span
               className={

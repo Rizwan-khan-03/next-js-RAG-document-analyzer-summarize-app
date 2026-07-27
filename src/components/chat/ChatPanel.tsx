@@ -34,38 +34,7 @@ interface ChatPanelProps {
   onSourceSelect: (source: Source) => void;
 }
 
-const defaultSuggestions = [
-  {
-    id: "summary",
-    title: "Summarize this document",
-    prompt: "Summarize this document in simple, concise language.",
-  },
-  {
-    id: "key-points",
-    title: "Extract key points",
-    prompt: "List the most important points from this document.",
-  },
-  {
-    id: "action-items",
-    title: "Identify action items",
-    prompt: "Identify any action items, deadlines, or decisions in this document.",
-  },
-  {
-    id: "risks",
-    title: "Highlight risks",
-    prompt: "Highlight any risks, concerns, or red flags in this document.",
-  },
-  {
-    id: "questions",
-    title: "Generate follow-up questions",
-    prompt: "Generate a set of smart follow-up questions about this document.",
-  },
-  {
-    id: "compare",
-    title: "Compare key themes",
-    prompt: "Compare the main themes and ideas in this document.",
-  },
-];
+
 
 export default function ChatPanel({
   documentId,

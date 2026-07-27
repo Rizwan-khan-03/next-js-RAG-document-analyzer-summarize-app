@@ -13,6 +13,8 @@ interface WorkspaceSidebarProps {
   onRemove(id: string): void;
 
   onAdd(): void;
+
+  onRename?(id: string): void;
 }
 
 export default function WorkspaceSidebar({
@@ -20,6 +22,7 @@ export default function WorkspaceSidebar({
   onSelect,
   onRemove,
   onAdd,
+  onRename,
 }: WorkspaceSidebarProps) {
   return (
     <aside className="flex h-full flex-col border-r border-slate-700 bg-slate-950">
@@ -38,6 +41,7 @@ export default function WorkspaceSidebar({
               workspace={workspace}
               onSelect={onSelect}
               onRemove={onRemove}
+              onRename={onRename}
             />
           ))
         )}
