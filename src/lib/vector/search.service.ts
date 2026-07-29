@@ -11,31 +11,59 @@ export class SearchService {
     const embedding =
       await EmbeddingService.generateEmbedding(question);
 
-    const vector = `[${embedding.join(",")}]`;
+    return this.searchByEmbedding(embedding, question, limit, `"documentId" = $2`, [documentId]);
+  }
 
-    // Search similar chunks
-    const chunks =
-      await prisma.$queryRawUnsafe<
-        {
-          content: string;
-          chunkIndex: number;
-          pageNumber: number;
-          similarity: number;
-        }[]
-      >(
+  static async searchSimilarChunksForDocuments(
+    documentIds: string[],
+    question: string,
+    limit = 6
+  ) {
+    if (documentIds.length === 0) return [];
+
+    const embedding = await EmbeddingService.generateEmbedding(question);
+    return this.searchByEmbedding(
+      embedding,
+      question,
+      limit,
+      `"documentId" = ANY($2::text[])`,
+      [documentIds],
+      true
+    );
+  }
+
+  private static async searchByEmbedding(
+    embedding: number[],
+    question: string,
+    limit: number,
+    condition: string,
+    conditionValues: unknown[],
+    includeDocument = false
+  ) {
+    const vector = `[${embedding.join(",")}]`;
+    const chunks = await prisma.$queryRawUnsafe<
+      {
+        content: string;
+        chunkIndex: number;
+        pageNumber: number;
+        similarity: number;
+        documentId?: string;
+      }[]
+    >(
         `
         SELECT
           content,
           "chunkIndex",
           "pageNumber",
+          ${includeDocument ? `"documentId",` : ""}
           1 - (embedding <=> $1::vector) AS similarity
         FROM "DocumentChunk"
-        WHERE "documentId" = $2
+        WHERE ${condition}
         ORDER BY embedding <=> $1::vector
-        LIMIT $3;
+        LIMIT $${conditionValues.length + 2};
         `,
         vector,
-        documentId,
+        ...conditionValues,
         limit
       );
 

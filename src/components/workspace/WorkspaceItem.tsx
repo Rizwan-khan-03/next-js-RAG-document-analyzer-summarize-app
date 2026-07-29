@@ -50,7 +50,7 @@ export default function WorkspaceItem({
             }}
             className="rounded-md p-2 text-slate-400 hover:bg-slate-700 hover:text-white"
             aria-label={`Rename ${workspace.title}`}
-            title="Rename workspace (coming soon)"
+            title="Rename workspace"
           >
             <Pencil size={15} />
           </button>

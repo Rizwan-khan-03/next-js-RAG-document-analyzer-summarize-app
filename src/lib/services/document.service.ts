@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma/client";
-
+import { EmbeddingService } from "@/lib/ai/embedding.service";
 export class DocumentService {
   static async getAllDocuments() {
     return prisma.document.findMany({
@@ -82,13 +82,38 @@ static async saveChunks(
     },
   });
 
-  await prisma.documentChunk.createMany({
-    data : chunks.map((content, index) => ({
+  for (let index = 0; index < chunks.length; index++) {
+
+    const content = chunks[index];
+
+    const embedding =
+      await EmbeddingService.generateEmbedding(content);
+
+    await prisma.$executeRawUnsafe(
+      `
+      INSERT INTO "DocumentChunk"
+      (
+        "documentId",
+        "chunkIndex",
+        "pageNumber",
+        "content",
+        "embedding"
+      )
+      VALUES
+      (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5::vector
+      )
+      `,
       documentId,
-      chunkIndex: index,
+      index,
+      0,
       content,
-      pageNumber: 0,
-    })),
-  });
+      `[${embedding.join(",")}]`
+    );
+  }
 }
 }

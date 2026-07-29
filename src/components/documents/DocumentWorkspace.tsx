@@ -27,9 +27,9 @@ export default function DocumentWorkspace({
 
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-12 w-full h-[calc(100vh-2rem)] overflow-hidden bg-slate-800 text-white gap-2 p-2">
+    <div className="grid grid-cols-1 md:grid-cols-12 w-full h-[calc(100vh-2rem)] overflow-hidden bg-slate-800 text-white ">
       {/* 2. Combined chat container */}
-      <div className="md:col-span-6 flex h-full min-h-0 overflow-hidden rounded-xl border border-slate-700 bg-slate-900/90 shadow-sm">
+      <div className="md:col-span-6 flex h-full min-h-0 overflow-hidden  border border-slate-700 bg-slate-900/90 shadow-sm">
         <div className="grid w-full min-w-0 grid-cols-[200px_minmax(0,1fr)]">
           <div className="min-h-0 border-r border-slate-700 bg-slate-900/80">
             <ChatSidebar
@@ -62,7 +62,7 @@ export default function DocumentWorkspace({
         </div>
       </div>
       {/* 1. First Container: DocumentSidebar (20% Width) */}
-      <div className="md:col-span-2 border rounded-xl h-full min-h-0 overflow-hidden">
+      <div className="md:col-span-2   h-full min-h-0 overflow-hidden">
         <DocumentSidebar document={document} />
       </div>
 
