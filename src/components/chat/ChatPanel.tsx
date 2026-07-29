@@ -16,7 +16,15 @@ interface ChatPanelProps {
   onSourceSelect: (source: Source) => void;
 }
 
-export default function ChatPanel({ documentId, sessionId, onTitleChange, onSourceSelect }: ChatPanelProps) {
+
+
+export default function ChatPanel({
+  documentId,
+  sessionId,
+  activeTitle,
+  onTitleChange,
+  onSourceSelect,
+}: ChatPanelProps) {
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<ChatMessageData[]>([]);
   const [loading, setLoading] = useState(false);
