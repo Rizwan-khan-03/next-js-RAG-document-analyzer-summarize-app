@@ -17,8 +17,8 @@ export default function DocumentSidebar({
 
         <div className="mt-1 space-y-2 text-sm">
 
-          <div className="flex justify-between text-gray-600 font-semibold">
-            <span>Status</span>
+          <div className="text-sm flex justify-between text-gray-600 font-semibold">
+            <span className="text-sm">Status</span>
 
             <span
               className={
@@ -43,7 +43,7 @@ export default function DocumentSidebar({
 
         </div>
       </div>
-       {/* Keywords */}
+      {/* Keywords */}
 
       <div className="rounded-xl border shadow-sm p-5">
 
@@ -80,8 +80,6 @@ export default function DocumentSidebar({
             "Summary not available"}
         </p>
       </div>
-
-     
 
     </div>
   );

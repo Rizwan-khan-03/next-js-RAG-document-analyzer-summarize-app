@@ -1,18 +1,15 @@
 "use client";
 
-import { KeyboardEvent, useEffect, useRef, useState } from "react";
+import { KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import DocumentActions from "./DocumentActions";
-import ResponseToolbar from "./ResponseToolbar";
+import DocumentActions from "../chat/DocumentActions";
+import ResponseToolbar from "../chat/ResponseToolbar";
 // import SuggestedQuestions from "./SuggestedQuestions";
 
-interface AssistantMessage extends Message {
-  id?: string;
-  feedback?: "LIKE" | "DISLIKE" | null;
-}
-
 interface Source {
+  documentId: string;
+  documentTitle: string;
   pageNumber: number;
   similarity: number;
   content: string;
@@ -26,23 +23,21 @@ interface Message {
   feedback?: "LIKE" | "DISLIKE" | null;
 }
 
-interface ChatPanelProps {
-  documentId: string;
+interface WorkspaceChatPanelProps {
+  workspaceId: string;
   sessionId?: string;
-  activeTitle?: string;
   onTitleChange?: (title: string) => void;
   onSourceSelect: (source: Source) => void;
 }
 
 
 
-export default function ChatPanel({
-  documentId,
+export default function WorkspaceChatPanel({
+  workspaceId,
   sessionId,
-  activeTitle,
   onTitleChange,
   onSourceSelect,
-}: ChatPanelProps) {
+}: WorkspaceChatPanelProps) {
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
@@ -50,11 +45,29 @@ export default function ChatPanel({
   const [toast, setToast] = useState<string | null>(null);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
 
+  const loadMessages = useCallback(async (targetSessionId = sessionId) => {
+    if (!targetSessionId) {
+      setMessages([]);
+      return;
+    }
+
+    const res = await fetch(`/api/workspace/message?sessionId=${targetSessionId}`);
+    if (activeSessionIdRef.current !== targetSessionId || !res.ok) return;
+
+    const data = await res.json() as { id?: string; role: string; content: string; sources?: Source[]; feedback?: "LIKE" | "DISLIKE" | null }[];
+    setMessages(data.map((msg) => ({
+      id: msg.id,
+      role: msg.role as "user" | "assistant",
+      text: msg.content,
+      sources: msg.sources ?? [],
+      feedback: msg.feedback ?? null,
+    })));
+  }, [sessionId]);
+
   useEffect(() => {
     activeSessionIdRef.current = sessionId;
-    setMessages([]);
     void loadMessages(sessionId);
-  }, [sessionId]);
+  }, [sessionId, loadMessages]);
 
 
 
@@ -71,13 +84,13 @@ export default function ChatPanel({
     replaceAssistantIndex?: number;
     replaceAssistantMessageId?: string;
   }) {
-    const response = await fetch("/api/chat", {
+    const response = await fetch("/api/workspace/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        documentId,
+        workspaceId,
         sessionId: currentSessionId,
         question: questionText,
         history,
@@ -207,33 +220,6 @@ export default function ChatPanel({
     });
   }
 
-  async function loadMessages(targetSessionId = sessionId) {
-    if (!targetSessionId) {
-      setMessages([]);
-      return;
-    }
-
-    const res = await fetch(
-      `/api/chat/message?sessionId=${targetSessionId}`
-    );
-
-    if (activeSessionIdRef.current !== targetSessionId) {
-      return;
-    }
-
-    const data = await res.json();
-
-    const formatted = data.map((msg: { id?: string; role: string; content: string; sources?: Source[]; feedback?: "LIKE" | "DISLIKE" | null }) => ({
-      id: msg.id,
-      role: msg.role as "user" | "assistant",
-      text: msg.content,
-      sources: msg.sources ?? [],
-      feedback: msg.feedback ?? null,
-    }));
-
-    setMessages(formatted);
-  }
-
   async function handleCopy(content: string, messageId: string | undefined) {
     try {
       await navigator.clipboard.writeText(content);
@@ -289,7 +275,7 @@ export default function ChatPanel({
     const nextFeedback = currentMessage?.feedback === feedback ? null : feedback;
 
     try {
-      const response = await fetch("/api/chat/feedback", {
+      const response = await fetch("/api/workspace/feedback", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -373,7 +359,7 @@ export default function ChatPanel({
                 {message.text}
               </div>
             ) : (
-              <div className="mr-12 rounded-xl bg-gray-100 p-3 text-black">
+              <div className=" rounded-xl bg-gray-100 p-3 text-black">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   // className="prose prose-sm max-w-none"
@@ -390,7 +376,7 @@ export default function ChatPanel({
                         ).values()
                       ).map((source, i) => (
                         <button
-                          key={`${source.pageNumber}-${i}`}
+                          key={`${source.documentId}-${source.pageNumber}-${i}`}
                           onClick={() => {
                             if (typeof onSourceSelect === "function") {
                               onSourceSelect(source);
@@ -398,7 +384,7 @@ export default function ChatPanel({
                           }}
                           className="rounded-lg bg-blue-100 px-3 py-2 text-sm hover:bg-blue-200"
                         >
-                          📄 Page {source.pageNumber}
+                          📄 {source.documentTitle}, page {source.pageNumber}
                         </button>
                       ))}
                     </div>
