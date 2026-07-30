@@ -1,32 +1,35 @@
 import Link from "next/link";
 
-import DashboardStats from "@/components/documents/DashboardStats";
-import FileUpload from "@/components/documents/FileUpload";
-import DocumentList from "@/components/documents/DocumentList";
-
+import DashboardStats from "@/components/dashboard/DashboardStats";
+import FileUpload from "@/components/dashboard/FileUpload";
+import DocumentList from "@/components/dashboard/DocumentList";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
 export default function DashboardPage() {
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold">
-        AI Document Intelligence Platform
-      </h1>
+    <div className="min-h-screen bg-gray-50">
+      <div className="mx-auto max-w-7xl px-2 py-2">
 
-      <DashboardStats />
+        {/* Header */}
 
-      <div className="mt-8">
-        <FileUpload />
+        <DashboardHeader />
+
+        {/* Stats */}
+
+        <DashboardStats />
+
+        {/* Upload */}
+
+        <div className="mt-4">
+          <FileUpload />
+        </div>
+
+        {/* Documents */}
+
+        <div className="mt-10">
+          <DocumentList />
+        </div>
+
       </div>
-
-      <div className="my-6 flex justify-end">
-        <Link
-          href="/workspace"
-          className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-        >
-          Open Workspace
-        </Link>
-      </div>
-
-      <DocumentList />
     </div>
   );
 }
