@@ -22,7 +22,7 @@ export default async function DocumentPage({
   const document = await getDocument(id);
 
   return (
-      <main className="h-screen  bg-gray-100 ">
+      <main className="h-screen  ">
       <DocumentWorkspace document={document} />
     </main>
   );

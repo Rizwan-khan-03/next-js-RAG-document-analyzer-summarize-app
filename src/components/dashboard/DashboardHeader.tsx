@@ -3,7 +3,7 @@ import { FolderOpen } from "lucide-react";
 
 export default function DashboardHeader() {
     return (
-       <div className="mb-4 flex items-center justify-between rounded-2xl border border-gray-200 bg-white p-3 shadow-sm">
+       <div className="mb-4 flex items-center justify-between rounded-2xl border border-gray-200 bg-white p-3 pl-8 shadow-sm">
 
             <div >
 
