@@ -27,11 +27,24 @@ export class WorkspaceChatService {
     return prisma.workspaceChatMessage.update({ where: { id: messageId }, data: { feedback } });
   }
 
-  static getSessions(workspaceId: string) {
+  static async getSessions(workspaceId: string) {
+    console.log(Object.keys(prisma));
+
+    console.log(
+      "workspaceChatSession =",
+      (prisma as any).workspaceChatSession
+    );
+
     return prisma.workspaceChatSession.findMany({
       where: { workspaceId },
-      orderBy: { updatedAt: "desc" },
-      select: { id: true, title: true, updatedAt: true },
+      orderBy: {
+        updatedAt: "desc",
+      },
+      select: {
+        id: true,
+        title: true,
+        updatedAt: true,
+      },
     });
   }
 
