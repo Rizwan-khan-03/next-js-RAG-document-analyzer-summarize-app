@@ -1,102 +1,212 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { UploadCloud } from "lucide-react";
+import { UploadCloud, FileText } from "lucide-react";
 
 export default function FileUpload() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [message, setMessage] = useState("");
+  const [stage, setStage] = useState("📤 Uploading PDF...");
+  function openFilePicker() {
+    inputRef.current?.click();
+  }
+  function handleFile(file: File | null) {
+    if (!file) return;
+    setFile(file);
+    setMessage("");
+  }
 
-  const handleUpload = async () => {
+  // async function handleUpload() {
+  //   if (!file) return;
+
+  //   setUploading(true);
+  //   setProgress(0);
+
+  //   const formData = new FormData();
+  //   formData.append("file", file);
+
+  //   const xhr = new XMLHttpRequest();
+
+  //   xhr.upload.onprogress = (event) => {
+  //     if (event.lengthComputable) {
+  //       const percent = Math.round(
+  //         (event.loaded / event.total) * 100
+  //       );
+  //       setProgress(percent);
+  //     }
+  //   };
+
+  //   xhr.onload = () => {
+  //     setUploading(false);
+
+  //     if (xhr.status === 200) {
+  //       setProgress(100);
+  //       setMessage("✅ Upload completed successfully.");
+
+  //       setTimeout(() => {
+  //         window.location.reload();
+  //       }, 1200);
+  //     } else {
+  //       setMessage("❌ Upload failed.");
+  //     }
+  //   };
+
+  //   xhr.onerror = () => {
+  //     setUploading(false);
+  //     setMessage("❌ Something went wrong.");
+  //   };
+
+  //   xhr.open("POST", "/api/documents/upload");
+  //   xhr.send(formData);
+  // }
+  async function handleUpload() {
     if (!file) return;
 
     setUploading(true);
+    setProgress(0);
+    setStage("📤 Uploading PDF...");
 
     const formData = new FormData();
     formData.append("file", file);
 
-    await fetch("/api/documents/upload", {
-      method: "POST",
-      body: formData,
-    });
+    let current = 0;
 
-    setUploading(false);
+    const fakeProgress = setInterval(() => {
+      current += Math.random() * 8;
 
-    window.location.reload();
-  };
+      if (current >= 90) {
+        current = 90;
+        clearInterval(fakeProgress);
+      }
+
+      setProgress(Math.floor(current));
+
+      // Update stage based on current progress
+      if (current >= 20 && current < 40) {
+        setStage("📖 Extracting Text...");
+      } else if (current >= 40 && current < 60) {
+        setStage("🧩 Splitting into Chunks...");
+      } else if (current >= 60 && current < 80) {
+        setStage("🧠 Creating Embeddings...");
+      } else if (current >= 80) {
+        setStage("✨ Generating AI Summary...");
+      }
+    }, 150);
+
+    try {
+      const response = await fetch("/api/documents/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      clearInterval(fakeProgress);
+
+      if (!response.ok) throw new Error();
+
+      setProgress(100);
+      setStage("✅ Completed");
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (err) {
+      clearInterval(fakeProgress);
+      setUploading(false);
+      setProgress(0);
+      setStage("❌ Upload Failed");
+      alert("Upload failed");
+    }
+  }
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
 
-      <div className="mb-2">
-        <h5 className="font-bold text-gray-900">
-          Upload Documents
-        </h5>
+      <input
+        ref={inputRef}
+        type="file"
+        className="hidden"
+        onChange={(e) => handleFile(e.target.files?.[0] || null)}
+      />
 
-        <p className=" text-sm mt-2 text-gray-500">
-          Upload PDFs to summarize, search and chat with AI.
+      <div
+        onClick={openFilePicker}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          e.preventDefault();
+          handleFile(e.dataTransfer.files[0]);
+        }}
+        className="cursor-pointer rounded-xl border-2 border-dashed border-gray-300 p-10 text-center transition hover:border-black hover:bg-gray-50"
+      >
+        <UploadCloud
+          size={42}
+          className="mx-auto mb-4 text-gray-500"
+        />
+
+        <h3 className="text-lg font-semibold text-gray-800">
+          Drag & Drop PDF here
+        </h3>
+
+        <p className="mt-2 text-sm text-gray-500">
+          or click to browse
         </p>
       </div>
 
-      <div
-        onClick={() => inputRef.current?.click()}
-        className="cursor-pointer rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50 py-14 transition hover:border-blue-500 hover:bg-blue-100"
-      >
-        <div className="flex flex-col items-center">
-
-          <UploadCloud
-            size={60}
-            className="text-blue-600"
-          />
-
-          <h3 className="mt-4 text-xl font-semibold text-gray-900">
-            Drag & Drop PDF here
-          </h3>
-
-          <p className="mt-2 text-gray-500">
-            or click to browse files
-          </p>
-
-          <p className="mt-6 text-sm text-gray-400">
-            Supports PDF files only
-          </p>
-
-        </div>
-
-        <input
-          ref={inputRef}
-          type="file"
-          accept=".pdf"
-          className="hidden"
-          onChange={(e) =>
-            setFile(e.target.files?.[0] || null)
-          }
-        />
-      </div>
-
       {file && (
-        <div className="mt-6 flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 p-4">
+        <div className="mt-6 flex items-center justify-between rounded-xl border bg-gray-50 p-4">
 
-          <div>
-            <p className="font-medium text-gray-900">
-              {file.name}
-            </p>
+          <div className="flex items-center gap-3">
+            <FileText className="text-red-500" />
 
-            <p className="text-sm text-gray-500">
-              {(file.size / 1024 / 1024).toFixed(2)} MB
-            </p>
+            <div>
+              <p className="font-medium text-gray-800">
+                {file.name}
+              </p>
+
+              <p className="text-sm text-gray-500">
+                {(file.size / 1024 / 1024).toFixed(2)} MB
+              </p>
+            </div>
           </div>
 
           <button
-            onClick={handleUpload}
             disabled={uploading}
-            className="rounded-xl bg-blue-600 px-6 py-3 font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
+            onClick={handleUpload}
+            className="rounded-lg bg-black px-6 py-2 text-white transition hover:bg-gray-800 disabled:opacity-60"
           >
-            {uploading ? "Uploading..." : "Upload PDF"}
+            {uploading ? "Uploading..." : "Upload"}
           </button>
 
+        </div>
+      )}
+
+      {uploading && (
+        <div className="mt-6">
+
+          <div className="mb-2 flex justify-between text-sm">
+            <span>Uploading...</span>
+            <span>{progress}%</span>
+          </div>
+          <p className="mt-3 text-sm text-gray-600">
+            {stage}
+          </p>
+
+          <div className="h-3 overflow-hidden rounded-full bg-gray-200">
+            <div
+              className="h-full rounded-full bg-black transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+
+        </div>
+      )}
+
+      {message && (
+        <div className="mt-5 rounded-lg bg-gray-100 p-3 text-sm text-gray-700">
+          {message}
         </div>
       )}
     </div>
