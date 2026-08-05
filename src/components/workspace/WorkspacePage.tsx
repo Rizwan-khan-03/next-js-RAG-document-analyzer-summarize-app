@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { FileText, FolderOpen } from "lucide-react";
-import PdfViewer from "../pdf/PdfViewer";
+// import PdfViewer from "../pdf/PdfViewer";
 import WorkspaceChatPanel from "./WorkspaceChatPanel";
 import WorkspaceChatSidebar from "./WorkspaceChatSidebar";
 import WorkspaceDocuments from "./WorkspaceDocuments";
@@ -11,7 +11,19 @@ import type { Workspace, WorkspaceDocument } from "./types";
 
 type DocumentResponse = { id: string; fileName: string; filePath: string };
 type WorkspaceResponse = Omit<Workspace, "selected">;
+import dynamic from "next/dynamic";
 
+const PdfViewer = dynamic(
+  () => import("../pdf/PdfViewer"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-full items-center justify-center">
+        Loading PDF...
+      </div>
+    ),
+  }
+);
 export default function WorkspacePage() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [availableDocuments, setAvailableDocuments] = useState<WorkspaceDocument[]>([]);

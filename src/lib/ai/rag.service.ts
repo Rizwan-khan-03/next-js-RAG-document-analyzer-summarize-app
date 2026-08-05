@@ -2,7 +2,7 @@ import { SearchService } from "@/lib/vector/search.service";
 // import { gemini } from "@/lib/ai/gemini";
 import { openrouter } from "@/lib/ai/openrouter";
 import { prisma } from "@/lib/prisma/client";
-
+import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 type ChatHistoryMessage = {
   role: "user" | "assistant";
   text: string;
@@ -64,7 +64,7 @@ QUESTION
 ${question}
 `;
     console.log("Creating OpenRouter stream...");
-    const chatMessages = [
+    const chatMessages :ChatCompletionMessageParam[]= [
       {
         role: "system",
         content:
