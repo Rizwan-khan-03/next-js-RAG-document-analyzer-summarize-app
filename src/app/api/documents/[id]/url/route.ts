@@ -23,6 +23,8 @@ export async function GET(
       );
     }
 
+    console.log("Storage path:", document.filePath);
+
     const { data, error } = await supabase.storage
       .from("documents")
       .createSignedUrl(document.filePath, 60 * 60);
