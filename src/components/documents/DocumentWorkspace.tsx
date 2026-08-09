@@ -22,10 +22,10 @@ export default function DocumentWorkspace({
     useState<string>();
   const [selectedSessionTitle, setSelectedSessionTitle] =
     useState("New Chat");
-  
 
 
-  
+
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-12 w-full h-[calc(100vh-2rem)] overflow-hidden bg-slate-800 text-white ">
       {/* 2. Combined chat container */}
@@ -68,10 +68,17 @@ export default function DocumentWorkspace({
 
       {/* 4. Fourth Container: PDF Viewer (40% Width) */}
       <div className="md:col-span-4 rounded-xl border bg-white shadow-sm h-full min-h-0 overflow-hidden">
-        <PdfViewer
+        {/* <PdfViewer
           fileUrl={document.filePath}
           pageNumber={currentPage}
           highlightText={highlightText}
+          documentId={document.id}
+        /> */}
+        <PdfViewer
+          filePath={document.fileUrl}
+          pageNumber={currentPage}
+          highlightText={highlightText}
+          documentId={document.id}
         />
       </div>
 

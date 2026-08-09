@@ -139,7 +139,7 @@ export default function WorkspacePage() {
           </div>
         </section>
         <WorkspaceDocuments workspace={selectedWorkspace} selectedDocumentId={selectedDocumentId} availableDocuments={availableDocuments} onAddDocument={(document) => { void addDocument(document); }} onRemoveDocument={(id) => { void removeDocument(id); }} onSelectDocument={resetViewer} />
-        <section className="min-h-0 overflow-hidden bg-white">{selectedDocument ? <PdfViewer fileUrl={selectedDocument.fileUrl} pageNumber={currentPage} highlightText={highlightText} /> : <EmptyPanel message="Select a document to preview its PDF." light />}</section>
+        <section className="min-h-0 overflow-hidden bg-white">{selectedDocument ? <PdfViewer filePath={selectedDocument.fileUrl} pageNumber={currentPage} highlightText={highlightText} documentId={selectedDocument.id} /> : <EmptyPanel message="Select a document to preview its PDF." light />}</section>
       </div>
     </main>
   );

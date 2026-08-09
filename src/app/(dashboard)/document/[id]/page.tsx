@@ -1,29 +1,43 @@
+import { prisma } from "@/lib/prisma/client";
+import { notFound } from "next/navigation";
+
+import { getDocumentSignedUrl } from "@/lib/supabase/document-url";
+
 import DocumentWorkspace from "@/components/documents/DocumentWorkspace";
 
-async function getDocument(id: string) {
-  const res = await fetch(
-    `http://localhost:3000/api/documents/${id}`,
-    {
-      cache: "no-store",
-    }
-  );
-
-  return res.json();
+interface PageProps {
+  params: Promise<{
+    id: string;
+  }>;
 }
 
 export default async function DocumentPage({
   params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+}: PageProps) {
 
   const { id } = await params;
 
-  const document = await getDocument(id);
+  const document = await prisma.document.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!document) {
+    notFound();
+  }
+
+  // Generate signed URL on server
+  const signedUrl = await getDocumentSignedUrl(
+    document.filePath
+  );
 
   return (
-      <main className="h-screen  ">
-      <DocumentWorkspace document={document} />
-    </main>
+    <DocumentWorkspace
+      document={{
+        ...document,
+        fileUrl: signedUrl,
+      }}
+    />
   );
 }

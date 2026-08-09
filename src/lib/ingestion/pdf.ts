@@ -1,4 +1,5 @@
-import fs from "fs";
+import { supabase } from "@/lib/supabase/supabase";
+
 import { extractText } from "unpdf";
 
 export interface PdfPage {
@@ -9,11 +10,21 @@ export interface PdfPage {
 export async function extractPdfText(
   filePath: string
 ): Promise<PdfPage[]> {
-  const buffer = fs.readFileSync(filePath);
 
-  const data = new Uint8Array(buffer);
+  const { data, error } = await supabase.storage
+    .from("documents")
+    .download(filePath);
 
-  const result = await extractText(data);
+  if (error) {
+    console.error("SUPABASE PDF DOWNLOAD ERROR:", error);
+    throw new Error("Unable to download PDF");
+  }
+
+  const arrayBuffer = await data.arrayBuffer();
+
+  const buffer = new Uint8Array(arrayBuffer);
+
+  const result = await extractText(buffer);
 
   return result.text.map((pageText, index) => ({
     pageNumber: index + 1,
